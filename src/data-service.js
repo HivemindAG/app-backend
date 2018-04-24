@@ -19,7 +19,7 @@ function getPathRaw(session, path, cbk) {
     };
     apiRequest.call(session, req, (err, res, ans) => {
       console.log(`CACHE: update ${args.key}`);
-      if (ans.hasOwnProperty('total') && Array.isArray(ans.data)) {
+      if (!err && ans.hasOwnProperty('total') && Array.isArray(ans.data)) {
         ans = ans.data;
       }
       cbk(err, {value: ans, timeout: config.staticCacheTimeout});
@@ -39,6 +39,28 @@ function getPath(session, path, cbk) {
   getPathRaw(session, `/v1/environments/${session.envId}${path}`, cbk);
 }
 
+function getDeviceProperties(session, devId, cbk) {
+  getPathRaw(session, `/v1/environments/${session.envId}/devices/${devId}`, (err, ans) => {
+    if (err) return cbk(err);
+    let props = {};
+    try {
+      props = JSON.parse(ans.description);
+    } catch (e) {
+      // No valid properties found
+    }
+    cbk(null, props);
+  });
+}
+
+// TODO: disable this temporary hack once /up is available
+function getDeviceUplinkUrl(session, devId, cbk) {
+  getPathRaw(session, `/v1/environments/${session.envId}/devices/${devId}`, (err, ans) => {
+    if (err) return cbk(err);
+    const url = `https://gateway.hivemind.ch/v1/capture/${ans.domain.secret}?id=${ans.externalId}`;
+    cbk(null, url);
+  });
+}
+
 const sampleCache = new Cache();
 function getSamples(session, devId, cbk) {
   const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
@@ -47,6 +69,42 @@ function getSamples(session, devId, cbk) {
 function expireSamples(session, devId) {
   const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
   sampleCache.expire(key);
+}
+
+function deviceUplink(session, devId, data, cbk) {
+  getDeviceProperties(session, devId, (err, props) => {
+    if (err) return cbk(err);
+    if (!props.uplink) return cbk('Uplink not enabled for this device');
+    getDeviceUplinkUrl(session, devId, (err, url) => {
+      if (err) return cbk(err);
+      const req = {
+        url: url,
+        method: 'POST',
+        json: data,
+      };
+      apiRequest.call(session, req, (err, res, ans) => {
+        if (err) return cbk(err);
+        expireSamples(session, devId);
+        return cbk(null, {msg: 'ok'});
+      });
+    });
+  });
+}
+function deviceDownlink(session, devId, data, cbk) {
+  getDeviceProperties(session, devId, (err, props) => {
+    if (err) return cbk(err);
+    if (!props.downlink) return cbk('Downlink not enabled for this device');
+    const req = {
+      path: `/v1/environments/${session.envId}/devices/${devId}/down`,
+      method: 'POST',
+      json: data,
+    };
+    apiRequest.call(session, req, (err, res, ans) => {
+      if (err) return cbk(err);
+      expireSamples(session, devId);
+      return cbk(null, {msg: 'ok'});
+    });
+  });
 }
 
 function fetchNewSamples(args, cbk) {
@@ -97,4 +155,6 @@ module.exports = {
   getPath,
   getSamples,
   expireSamples,
+  deviceUplink,
+  deviceDownlink,
 };

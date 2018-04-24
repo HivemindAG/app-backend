@@ -30,6 +30,20 @@ router.get('/devices/:id', (req, res, next) => {
   });
 });
 
+router.post('/devices/:id/up', (req, res, next) => {
+  dataService.deviceUplink(req.session, req.params.id, req.body, (err, ans) => {
+    if (err) return next(err);
+    res.send(ans);
+  });
+});
+
+router.post('/devices/:id/down', (req, res, next) => {
+  dataService.deviceDownlink(req.session, req.params.id, req.body, (err, ans) => {
+    if (err) return next(err);
+    res.send(ans);
+  });
+});
+
 router.get('/device-groups', (req, res, next) => {
   proxyRequest(req.session, req.url, res, next, {
     '@each': {'@keys': ['id', 'name', 'description']},
