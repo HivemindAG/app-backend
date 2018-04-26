@@ -51,8 +51,17 @@ router.get('/device-groups', (req, res, next) => {
 });
 
 router.get('/device-groups/:id', (req, res, next) => {
-  proxyRequest(req.session, req.url, res, next, {
+  const pick = {
     '@keys': ['id', 'name', 'description', 'devices'],
     'devices': {'@each': {'@keys': ['id', 'name', 'description']}},
+  };
+  dataService.getPath(req.session, req.path, (err, group) => {
+    if (err) return next(err);
+    const devPath = req.path.replace(/\/device-groups\//, '/devices?groupId=');
+    dataService.getPath(req.session, devPath, (err, ans) => {
+      if (err) return next(err);
+      group.devices = ans;
+      res.send(util.deepPick(group, pick));
+    });
   });
 });
