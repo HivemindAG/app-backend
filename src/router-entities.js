@@ -57,7 +57,7 @@ router.get('/device-groups/:id', (req, res, next) => {
   };
   dataService.getPath(req.session, req.path, (err, group) => {
     if (err) return next(err);
-    const devPath = req.path.replace(/\/device-groups\//, '/devices?groupId=');
+    const devPath = req.path.replace(/\/device-groups\//, '/devices?deviceGroup=');
     dataService.getPath(req.session, devPath, (err, ans) => {
       if (err) return next(err);
       group.devices = ans;
