@@ -28,7 +28,7 @@ function getPathRaw(session, path, cbk) {
 }
 
 function getEnvId(session, cbk) {
-  getPathRaw(session, '/v1/environments', (err, envs) => {
+  getPathRaw(session, `/v1/environments?salt=${session.apiKey}`, (err, envs) => {
     if (err) return cbk(err);
     if (!(envs.length > 0)) return cbk("Environment not found");
     cbk(null, envs[0].id);
