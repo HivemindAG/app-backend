@@ -53,15 +53,6 @@ function getDeviceProperties(session, devId, cbk) {
   });
 }
 
-// TODO: disable this temporary hack once /up is available
-function getDeviceUplinkUrl(session, devId, cbk) {
-  getPathRaw(session, `/v1/environments/${session.envId}/devices/${devId}`, (err, ans) => {
-    if (err) return cbk(err);
-    const url = `https://gateway.hivemind.ch/v1/capture/${ans.domain.secret}?id=${ans.externalId}`;
-    cbk(null, url);
-  });
-}
-
 const sampleCache = new Cache();
 function getSamples(session, devId, cbk) {
   const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
@@ -76,18 +67,15 @@ function deviceUplink(session, devId, data, cbk) {
   getDeviceProperties(session, devId, (err, props) => {
     if (err) return cbk(err);
     if (!props.uplink) return cbk('Uplink not enabled for this device');
-    getDeviceUplinkUrl(session, devId, (err, url) => {
+    const req = {
+      path: `/v1/environments/${session.envId}/devices/${devId}/up`,
+      method: 'POST',
+      json: data,
+    };
+    apiRequest.call(session, req, (err, res, ans) => {
       if (err) return cbk(err);
-      const req = {
-        url: url,
-        method: 'POST',
-        json: data,
-      };
-      apiRequest.call(session, req, (err, res, ans) => {
-        if (err) return cbk(err);
-        expireSamples(session, devId);
-        return cbk(null, {msg: 'ok'});
-      });
+      expireSamples(session, devId);
+      return cbk(null, {msg: 'ok'});
     });
   });
 }
