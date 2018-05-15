@@ -44,7 +44,9 @@ function getDeviceProperties(session, devId, cbk) {
   getPathRaw(session, `/v1/environments/${session.envId}/devices/${devId}`, (err, ans) => {
     if (err) return cbk(err);
     let props = {};
+    if (ans.description === null) return cbk(null, props);
     try {
+      // Will return null without error for parse(null)
       props = JSON.parse(ans.description);
     } catch (e) {
       // No valid properties found
