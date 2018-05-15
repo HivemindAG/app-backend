@@ -10,11 +10,12 @@ const config = {
 };
 
 const getPathCache = new Cache();
-function getPathRaw(session, path, cbk) {
-  const key = `${session.apiURL}${path}`;
+function getPathRaw(session, path, cbk, keySalt) {
+  const url = `${session.apiURL}${path}`;
+  const key = keySalt ? `${keySalt}:${url}` : url;
   getPathCache.get(key, cbk, (args, cbk) => {
     const req = {
-      url: key,
+      url: url,
       qs: {limit: 1000},
     };
     apiRequest.call(session, req, (err, res, ans) => {
@@ -28,11 +29,11 @@ function getPathRaw(session, path, cbk) {
 }
 
 function getEnvId(session, cbk) {
-  getPathRaw(session, `/v1/environments?salt=${session.apiKey}`, (err, envs) => {
+  getPathRaw(session, "/v1/environments", (err, envs) => {
     if (err) return cbk(err);
     if (!(envs.length > 0)) return cbk("Environment not found");
     cbk(null, envs[0].id);
-  })
+  }, session.apiKey)
 }
 
 function getPath(session, path, cbk) {
