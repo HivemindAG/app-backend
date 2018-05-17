@@ -1,6 +1,6 @@
 # Hivemind Platform App Backend
 
-More information can be found in the [wiki](https://github.com/HivemindAG/app-backend/wiki).
+[Endpoint documentation](https://github.com/HivemindAG/app-backend/wiki/Endpoints) and additional information can be found in the [wiki](https://github.com/HivemindAG/app-backend/wiki).
 
 ## Quickstart
 
@@ -9,11 +9,11 @@ More information can be found in the [wiki](https://github.com/HivemindAG/app-ba
 git checkout git@github.com:HivemindAG/app-backend.git
 cd app-backend
 npm install
-npm start -- --key &lt;your-api-key&gt;
+npm start -- --key <your-api-key>
 # API is now available at http://localhost:8080
 ```
 
-# Caching
+## Caching
 
 The app backend caches most requests to improve response time and reduce the load on the Hivemind Platform API.
 
