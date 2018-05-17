@@ -20,6 +20,7 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.16.2",
+    "minimist": "^1.2.0",
     "request": "^2.86.0",
     "ws": "^5.1.1"
   }

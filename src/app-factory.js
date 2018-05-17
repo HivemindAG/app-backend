@@ -21,12 +21,12 @@ function init(config) {
    * Handle app configuration
    */
 
-  if (conf.appConfig) {
-    require('./setup').load(appConfig);
-  }
-
   if (conf.appConfigEnv && process.env[conf.appConfigEnv]) {
     require('./setup').load(JSON.parse(process.env[conf.appConfigEnv]));
+  }
+
+  if (conf.appConfig) {
+    require('./setup').load(conf.appConfig);
   }
 
 
