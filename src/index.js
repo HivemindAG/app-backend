@@ -1,5 +1,4 @@
 module.exports = {
-    app: require('./app'),
     setup: require('./setup'),
     apiRequest: require('./api-request'),
     asyncCache: require('./async-cache'),
