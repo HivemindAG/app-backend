@@ -1,63 +1,60 @@
 # Hivemind Platform App Backend
 
-## WebSocket Protocol
+More information can be found in the [wiki](https://github.com/HivemindAG/app-backend/wiki).
 
-Inspiration:
+## Quickstart
 
-* `https://github.com/mqttjs/mqtt-packet#packets`
-* `http://www.jsonrpc.org/specification`
 
-If a request contains an `id` property, an answer will be returned with the following form:
-
-```javascript
-{
-  id: 1, // The `id` provided in the request (to match request with the response)
-  ans: null, // Answer for the RPC call (not available on error)
-  err: null, // Error if the RPC call failed (not available on success)
-}
+```bash
+git checkout git@github.com:HivemindAG/app-backend.git
+cd app-backend
+npm install
+npm start -- --key &lt;your-api-key&gt;
+# API is now available at http://localhost:8080
 ```
 
-Set subscriptions. This replaces all previous subscriptions. Use `[]` to unsubscribe all.
+# Caching
 
-```javascript
-{
-  cmd: 'subs',
-  arg: [
-    {type: 'sample', deviceId: 'dev1', topic: 'topic1'},
-    {type: 'sample', deviceId: 'dev1', topic: 'topic2'},
-  ],
-}
-```
+The app backend caches most requests to improve response time and reduce the load on the Hivemind Platform API.
 
-Add a new subscription. If the subscription already exists, this has no effect.
+Changes made to any entities might not be visible for up to 4 minutes (e.g. changing a device name or adding a new device). For long entity lists only the first 1000 entries will be returned.
 
-```javascript
-{
-  cmd: 'sub',
-  arg: {type: 'sample', deviceId: 'dev1', topic: 'topic1'},
-}
-```
+The first time samples for a device are requested, the backend will load and cache the last 4000 samples from up to 15 days ago. After this, it will check for new data at least every 20 seconds. While this massively improves the response time for sample queries, only recent samples will be available.
 
-Remove a subscription. If the subscription doesn't exists, this has no effect.
+Some caching parameters can be adjusted using the `app configuration object`. However, keep in mind that caching too many samples might have negative impact on performance and memory requirements.
 
-```javascript
-{
-  cmd: 'unsub',
-  arg: {type: 'sample', deviceId: 'dev1', topic: 'topic1'},
-}
-```
+## Command Line Options
 
-If a new sample matches a subscription, the following message is received:
+* `--key`
+  * Hivemind Platform API key
+* `--port`
+  * Server port; default: `8080`
+* `--config`
+  * App configuration object (JSON)
 
-```javascript
-{
-  cmd: 'notify',
-  arg: {
-    type: 'sample',
-    deviceId: 'dev1',
-    topic: 'topic1',
-    timestamp: '2018-03-09T10:09:38.768Z',
-    data: {},
-  }
-}
-```
+## Environment Variables
+
+* `$PORT`
+  * Server port; default: `8080`
+* `$APP_CONFIG`
+  * App configuration object (JSON)
+
+## App Configuration Object Properties
+
+* `auth.session.apiKey`
+  * Hivemind Platform API key (String)
+* `auth.session.apiURL`
+  * Hivemind Platform API URL (String)
+  * Default: `"https://api.hivemind.ch"`
+* `dataService.sampleCacheRange`
+  * Sample caching duration [ms]
+  * Default: `1296000000` (15 days)
+* `dataService.sampleCacheLimit`
+  * Maximum number of cached samples per device
+  * Default: `4000`
+* `dataService.sampleCacheTimeout`
+  * Look for new samples after… [ms]
+  * Default: `20000` (20 seconds)
+* `dataService.staticCacheTimeout`
+  * Cache entities for… [ms]
+  * Default: `240000` (4 minutes)
