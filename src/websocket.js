@@ -12,9 +12,11 @@ module.exports = function(server) {
   wss = new WebSocket.Server({
     server,
     verifyClient: (info, cbk) => {
-      if (info.req.url != '/ws') return cbk(false, 404, 'Not Found');
-      auth.addSession(info.req, (err) => {
+      const req = info.req;
+      auth.addSession(req, (err) => {
         if (err) return cbk(false, 403, 'Forbidden');
+        // addSession might modify req.url
+        if (req.url != '/ws') return cbk(false, 404, 'Not Found');
         cbk(true);
       });
     }
