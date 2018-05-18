@@ -9,7 +9,6 @@ app.use(express.json());
 const conf = {
   appConfigEnv: 'APP_CONFIG',
   cors: true,
-  addSession: true,
 };
 
 
@@ -53,12 +52,10 @@ function init(config) {
    * Add session to request
    */
 
-  if (conf.addSession) {
-    const auth = require('./auth');
-    app.use((req, res, next) => {
-      auth.addSession(req, next);
-    });
-  }
+  const auth = require('./auth');
+  app.use((req, res, next) => {
+    auth.addSession(req, next);
+  });
 }
 
 
