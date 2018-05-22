@@ -112,11 +112,15 @@ function fetchNewSamples(args, cbk) {
     qs: {
       endDate: new Date(minDate).toISOString(),
       startDate: new Date(maxDate).toISOString(),
-      noOfRecords: config.sampleCacheLimit,
+      limit: config.sampleCacheLimit,
+      noOfRecords: config.sampleCacheLimit, // TODO: remove eventually (legacy)
     },
   }
   apiRequest.call(args.session, req, (err, res, ans) => {
     if (err) return cbk(err);
+    if (ans.hasOwnProperty('total') && Array.isArray(ans.data)) {
+      ans = ans.data;
+    }
     // ans.splice(0, ans.length - 1); // DEBUG: Simulate constant updates
     const samples = ans.map((d) => {
       const date = new Date(d.timestamp);
