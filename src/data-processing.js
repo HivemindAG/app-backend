@@ -110,6 +110,14 @@ function filterForQuery(q) {
   if (q.hasOwnProperty('topic')) {
     filters.push((o) => o.topic === q.topic);
   }
+  if (q.hasOwnProperty('topics')) {
+    const topics = q.topics.split(',');
+    if (topics.length > 1) {
+      filters.push((o) => topics.includes(o.topic));
+    } else if (q.topics !== '*') {
+      filters.push((o) => o.topic === q.topics);
+    }
+  }
   if (q.hasOwnProperty('minDate')) {
     const min = new Date(q.minDate).getTime();
     filters.push((o) => o.timestamp >= min);
