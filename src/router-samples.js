@@ -45,6 +45,7 @@ router.get('/devices/:id/trend', (req, res, next) => {
     const ans = {
       timestamp: s0.timestamp,
       dt: dt,
+      n: samples.length,
     };
     keys.forEach((k) => {
       ans[k] = {
@@ -76,6 +77,7 @@ router.get('/devices/:id/aggregate', (req, res, next) => {
     samples = data.query(samples, filter, q.limit, q.offset);
     const out = {};
     let groups = grouper(samples);
+    out.n = groups.map((arr) => arr.length);
     keys.forEach((k) => {
       out[k] = groups.map((samples) => samples.map((el) => el.data[k])).map(aggregator);
     });
@@ -108,6 +110,7 @@ router.get('/devices/:id/interval', (req, res, next) => {
     const out = {};
     out.timestamp = data.intervalBucketsTimestamps(startDate, q.interval, q.limit);
     let groups = grouper(samples);
+    out.n = groups.map((arr) => arr.length);
     keys.forEach((k) => {
       out[k] = groups.map((samples) => samples.map((el) => el.data[k])).map(aggregator);
     });
