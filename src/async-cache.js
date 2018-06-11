@@ -56,6 +56,14 @@ class Cache {
       onReady.forEach((cbk) => cbk(entry.error, entry.value));
     });
   }
+  _prune(cbk) {
+    for (const key in this.data) {
+      const entry = this.data[key];
+      if (cbk(entry)) {
+        delete this.data[key];
+      }
+    }
+  }
 }
 
 module.exports = {

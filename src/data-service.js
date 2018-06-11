@@ -152,4 +152,8 @@ module.exports = {
   expireSamples,
   deviceUplink,
   deviceDownlink,
+  caches: {
+    static: getPathCache,
+    samples: sampleCache,
+  },
 };
