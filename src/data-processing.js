@@ -21,7 +21,7 @@ const groupers = {
 
 function mkBuckets(nBuckets) {
   const out = [];
-  while (nBuckets--) out.push([]);
+  while (nBuckets-- > 0) out.push([]);
   return out;
 }
 
