@@ -19,7 +19,7 @@ function getPathRaw(session, path, cbk, keySalt) {
       qs: {limit: 1000},
     };
     apiRequest.call(session, req, (err, res, ans) => {
-      console.log(`CACHE: update ${args.key}`);
+      console.log(`CACHE: update ${url}`);
       if (!err && ans.hasOwnProperty('total') && Array.isArray(ans.data)) {
         ans = ans.data;
       }
