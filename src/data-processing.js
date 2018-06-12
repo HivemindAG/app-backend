@@ -6,7 +6,7 @@ function serialize(records, keys) {
   records.forEach((obj) => {
     out.timestamp.push(obj.timestamp);
     keys.forEach((key) => {
-      var val = obj.data[key];
+      var val = key === 'topic' ? obj[key] : obj.data[key];
       if (typeof val === 'undefined') val = null;
       out[key].push(val);
     });
