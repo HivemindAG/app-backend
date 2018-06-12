@@ -43,16 +43,21 @@ function getPath(session, path, cbk) {
 function getDeviceProperties(session, devId, cbk) {
   getPathRaw(session, `/v1/environments/${session.envId}/devices/${devId}`, (err, ans) => {
     if (err) return cbk(err);
-    let props = {};
-    if (ans.description === null) return cbk(null, props);
-    try {
-      // Will return null without error for parse(null)
-      props = JSON.parse(ans.description);
-    } catch (e) {
-      // No valid properties found
-    }
-    cbk(null, props);
+    cbk(null, getProperties(ans));
   });
+}
+
+function getProperties(entity) {
+  const props = entity.properties || {};
+  // Legacy description hack
+  try {
+    // Will return null without error for parse(null)
+    const descProps = JSON.parse(entity.description);
+    Object.assign(props, descProps);
+  } catch (e) {
+    // Description isn't valid JSON
+  }
+  return props;
 }
 
 const sampleCache = new Cache();
