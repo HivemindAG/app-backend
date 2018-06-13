@@ -161,4 +161,5 @@ module.exports = {
     static: getPathCache,
     samples: sampleCache,
   },
+  getProperties,
 };
