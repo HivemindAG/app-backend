@@ -51,7 +51,7 @@ function asyncMap(arr, func, cbk, index) {
   const i = index || 0;
   if (i >= arr.length) return cbk(null, arr);
   func(arr[i], (err, ans) => {
-    if (err) cbk(err);
+    if (err) return cbk(err);
     arr[i] = ans;
     asyncMap(arr, func, cbk, i + 1);
   });
