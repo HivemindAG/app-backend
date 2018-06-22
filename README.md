@@ -2,6 +2,8 @@
 
 [Endpoint documentation](https://github.com/HivemindAG/app-backend/wiki/Endpoints) and additional information can be found in the [wiki](https://github.com/HivemindAG/app-backend/wiki).
 
+We host a [shared instance](https://github.com/HivemindAG/app-backend/wiki/Shared-Instance) for prototyping and evaluation.
+
 ## Quickstart
 
 
