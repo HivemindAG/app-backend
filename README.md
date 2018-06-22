@@ -19,7 +19,7 @@ The app backend caches most requests to improve response time and reduce the loa
 
 Changes made to any entities might not be visible for up to 4 minutes (e.g. changing a device name or adding a new device). For long entity lists only the first 1000 entries will be returned.
 
-The first time samples for a device are requested, the backend will load and cache the last 4000 samples from up to 15 days ago. After this, it will check for new data at least every 20 seconds. While this massively improves the response time for sample queries, only recent samples will be available.
+The first time samples for a device are requested, the backend will load and cache the last 4000 samples from up to 100 days ago. After this, it will check for new data at least every 20 seconds. While this massively improves the response time for sample queries, only recent samples will be available.
 
 Some caching parameters can be adjusted using the `app configuration object`. However, keep in mind that caching too many samples might have negative impact on performance and memory requirements.
 

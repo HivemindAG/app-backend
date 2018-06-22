@@ -2,7 +2,7 @@ const apiRequest = require('./api-request');
 const Cache = require('./async-cache').Cache;
 
 const config = {
-  sampleCacheRange: 15 * 24 * 60 * 60 * 1000,
+  sampleCacheRange: 100 * 24 * 60 * 60 * 1000,
   sampleCacheLimit: 4000,
   sampleCacheTimeout: 20 * 1000,
   staticCacheTimeout: 4 * 60 * 1000,
