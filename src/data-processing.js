@@ -15,8 +15,9 @@ function serialize(records, keys) {
 }
 
 const groupers = {
-  hourOfDay: hoursBuckets,
-  dayOfWeek: dayBuckets,
+  hourOfDay: dayHoursBuckets,
+  dayOfWeek: weekDayBuckets,
+  hourOfWeek: weekHourBuckets,
 };
 
 function mkBuckets(nBuckets) {
@@ -25,7 +26,7 @@ function mkBuckets(nBuckets) {
   return out;
 }
 
-function hoursBuckets(records) {
+function dayHoursBuckets(records) {
   const buckets = mkBuckets(24);
   records.forEach((o) => {
     const i = o.timestamp.getHours();
@@ -34,10 +35,21 @@ function hoursBuckets(records) {
   return buckets;
 }
 
-function dayBuckets(records) {
+function weekDayBuckets(records) {
   const buckets = mkBuckets(7);
   records.forEach((o) => {
     const i = o.timestamp.getDay();
+    buckets[i].push(o);
+  });
+  return buckets;
+}
+
+function weekHourBuckets(records) {
+  const buckets = mkBuckets(24*7);
+  records.forEach((o) => {
+    const day = o.timestamp.getDay();
+    const hour = o.timestamp.getHours();
+    const i = day * 24 + hour;
     buckets[i].push(o);
   });
   return buckets;
