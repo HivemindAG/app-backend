@@ -5,50 +5,46 @@ const dataService = require('./data-service');
 const router = express.Router();
 module.exports = router;
 
-function proxyRequest(session, path, res, next, pick) {
-  dataService.getPath(session, path, (err, ans) => {
-    if (err) return next(err);
-    res.send(util.deepPick(ans, pick));
-  });
-}
-
 function getEntityKeys(list, def) {
   if (list === '') return [];
   if (!list) return def ? def : ['name', 'description'];
   return list.split(',');
 }
 
-function getEntity(session, path, keys, finalize, cbk) {
-  dataService.getPath(session, path, (err, ans) => {
-    if (err) return cbk(err);
-    const obj = {id: ans.id};
-    if (keys.includes('name')) obj.name = ans.name;
-    if (keys.includes('description')) obj.description = ans.description;
-    if (keys.includes('properties')) obj.properties = dataService.getProperties(ans);
-    if (finalize) {
-      finalize(obj, ans, cbk);
-    } else {
-      cbk(null, obj);
-    }
-  });
+function finalizeEntity(raw, keys) {
+  const obj = {id: raw.id};
+  if (keys.includes('name')) obj.name = raw.name;
+  if (keys.includes('description')) obj.description = raw.description;
+  if (keys.includes('properties')) obj.properties = dataService.getProperties(raw);
+  return obj;
 }
 
-function getDevice(session, devId, keys, cbk) {
-  let finalize = null;
+function finalizeDevice(session, raw, keys, cbk) {
+  const obj = finalizeEntity(raw, keys);
   if (keys.includes('typeProperties')) {
-    finalize = (obj, ans, cbk) => {
-      dataService.getPath(session, `/device-types/${ans.deviceType.id}`, (err, ans) => {
-        if (err) return cbk(err);
-        obj.typeProperties = dataService.getProperties(ans);
-        cbk(null, obj);
-      });
-    };
+    dataService.getPath(session, `/device-types/${raw.deviceType.id}`, (err, ans) => {
+      if (err) return cbk(err);
+      obj.typeProperties = dataService.getProperties(ans);
+      cbk(null, obj);
+    });
+  } else {
+    cbk(null, obj);
   }
-  getEntity(session, `/devices/${devId}`, keys, finalize, cbk);
+}
+
+function getDevices(session, q, keys, cbk) {
+  const sep = q.length > 0 ? '&' : '';
+  dataService.getPath(session, `/devices?${q}${sep}limit=1000`, (err, ans) => {
+    if (err) return next(err);
+    asyncMap(ans, (el, cbk) => {
+      finalizeDevice(session, el, keys, cbk);
+    }, cbk);
+  });
 }
 
 function asyncMap(arr, func, cbk, index) {
   const i = index || 0;
+  if (i === 0) arr = arr.slice(0);
   if (i >= arr.length) return cbk(null, arr);
   func(arr[i], (err, ans) => {
     if (err) return cbk(err);
@@ -59,30 +55,28 @@ function asyncMap(arr, func, cbk, index) {
 
 router.get('/environment', (req, res, next) => {
   const keys = getEntityKeys(req.query.keys);
-  getEntity(req.session, '', keys, null, (err, ans) => {
+  dataService.getPath(req.session, '', (err, ans) => {
     if (err) return next(err);
-    res.send(ans);
+    res.send(finalizeEntity(ans, keys));
   });
 });
 
 router.get('/devices', (req, res, next) => {
   const keys = getEntityKeys(req.query.keys);
-  dataService.getPath(req.session, `/devices`, (err, ans) => {
+  getDevices(req.session, '', keys, (err, ans) => {
     if (err) return next(err);
-    asyncMap(ans, (el, cbk) => {
-      getDevice(req.session, el.id, keys, cbk);
-    }, (err, arr) => {
-      if (err) return next(err);
-      res.send(arr);
-    });
+    res.send(ans);
   });
 });
 
 router.get('/devices/:id', (req, res, next) => {
   const keys = getEntityKeys(req.query.keys);
-  getDevice(req.session, req.params.id, keys, (err, ans) => {
+  dataService.getPath(req.session, `/devices/${req.params.id}`, (err, ans) => {
     if (err) return next(err);
-    res.send(ans);
+    finalizeDevice(req.session, ans, keys, (err, obj) => {
+      if (err) return next(err);
+      res.send(obj);
+    });
   });
 });
 
@@ -104,35 +98,24 @@ router.get('/device-groups', (req, res, next) => {
   const keys = getEntityKeys(req.query.keys);
   dataService.getPath(req.session, `/device-groups`, (err, ans) => {
     if (err) return next(err);
-    asyncMap(ans, (el, cbk) => {
-      getEntity(req.session, `/device-groups/${el.id}`, keys, null, cbk);
-    }, (err, arr) => {
-      if (err) return next(err);
-      res.send(arr);
-    });
+    res.send(ans.map((el) => finalizeEntity(el, keys)));
   });
 });
 
 router.get('/device-groups/:id', (req, res, next) => {
   const keys = getEntityKeys(req.query.keys, ['name', 'description', 'devices']);
-  let finalize = null;
-  if (keys.includes('devices')) {
-    finalize = (obj, ans, cbk) => {
-      const keys = getEntityKeys(req.query.deviceKeys);
-      dataService.getPath(req.session, `/devices?deviceGroup=${obj.id}&limit=1000`, (err, ans) => {
-        if (err) return next(err);
-        asyncMap(ans, (el, cbk) => {
-          getDevice(req.session, el.id, keys, cbk);
-        }, (err, arr) => {
-          if (err) return cbk(err);
-          obj.devices = arr;
-          cbk(null, obj);
-        });
-      });
-    };
-  }
-  getEntity(req.session, `/device-groups/${req.params.id}`, keys, finalize, (err, ans) => {
+  dataService.getPath(req.session, `/device-groups/${req.params.id}`, (err, ans) => {
     if (err) return next(err);
-    res.send(ans);
+    const obj = finalizeEntity(ans, keys);
+    if (keys.includes('devices')) {
+      const devKeys = getEntityKeys(req.query.deviceKeys);
+      getDevices(req.session, `deviceGroup=${obj.id}`, devKeys, (err, ans) => {
+        if (err) return next(err);
+        obj.devices = ans;
+        res.send(obj);
+      });
+    } else {
+      res.send(obj);
+    }
   });
 });
