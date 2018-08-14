@@ -133,5 +133,5 @@ function addSub(arr, sub) {
 
 function removeSub(arr, sub) {
   arr = arr.filter((s) => !subMatch(s, sub));
-  arr.push(sub);
+  return arr;
 }
