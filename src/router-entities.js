@@ -102,7 +102,7 @@ router.get('/device-groups', (req, res, next) => {
     if (keys.includes('devices')) {
       const devKeys = getEntityKeys(req.query.deviceKeys);
       asyncMap(arr, (obj, cbk) => {
-          getDevices(req.session, `deviceGroup=${obj.id}`, devKeys, (err, ans) => {
+        getDevices(req.session, `deviceGroup=${obj.id}`, devKeys, (err, ans) => {
           obj.devices = ans;
           cbk(err, obj);
         });
