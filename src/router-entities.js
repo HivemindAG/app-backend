@@ -98,9 +98,24 @@ router.get('/device-groups', (req, res, next) => {
   const keys = getEntityKeys(req.query.keys);
   dataService.getPath(req.session, `/device-groups`, (err, ans) => {
     if (err) return next(err);
-    res.send(ans.map((el) => finalizeEntity(el, keys)));
+    const arr = ans.map((el) => finalizeEntity(el, keys));
+    if (keys.includes('devices')) {
+      const devKeys = getEntityKeys(req.query.deviceKeys);
+      asyncMap(arr, (obj, cbk) => {
+          getDevices(req.session, `deviceGroup=${obj.id}`, devKeys, (err, ans) => {
+          obj.devices = ans;
+          cbk(err, obj);
+        });
+      }, (err, arr) => {
+          if (err) return next(err);
+          res.send(arr);
+      });
+    } else {
+      res.send(arr);
+    }
   });
 });
+
 
 router.get('/device-groups/:id', (req, res, next) => {
   const keys = getEntityKeys(req.query.keys, ['name', 'description', 'devices']);
