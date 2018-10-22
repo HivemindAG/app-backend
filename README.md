@@ -60,3 +60,7 @@ Some caching parameters can be adjusted using the `app configuration object`. Ho
 * `dataService.staticCacheTimeout`
   * Cache entities for… [ms]
   * Default: `240000` (4 minutes)
+* `request.concurrent`
+  * Limit the number of concurrent Platform API requests
+  * `0` for unlimited
+  * Default: `8`
