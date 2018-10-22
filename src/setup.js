@@ -1,6 +1,7 @@
 const config = {
   dataService: require('./data-service').config,
   auth: require('./auth').config,
+  request: require('./api-request').config,
 };
 
 function load(conf) {
