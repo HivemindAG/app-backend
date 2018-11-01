@@ -107,32 +107,27 @@ function fetchNewSamples(args, cbk) {
   const isFirst = !args.value;
   const old = isFirst ? [] : args.value;
   const now = Date.now();
+  const query = {
+    limit: config.sampleCacheLimit,
+    keys: ['id', 'topic', 'timestamp', 'data'],
+  };
   const req = {
-    url: `${args.key}/data`,
-    qs: {
-      limit: config.sampleCacheLimit,
-    },
-  }
+    method: 'POST',
+    url: `${args.key}/data/query`,
+    json: query,
+  };
   if (old.length > 0) {
-    req.qs.after = old[0].id;
+    query.after = old[0].id;
   } else {
-    const minDate = now - config.sampleCacheRange;
-    const maxDate = now + 100000; // 1m 4s in the future
-    req.qs.endDate = new Date(minDate).toISOString();
-    req.qs.startDate = new Date(maxDate).toISOString();
+    const minDate = new Date(now - config.sampleCacheRange).toISOString();
+    query.timestamp = {gt: minDate};
   }
   apiRequest.call(args.session, req, (err, res, ans) => {
     // err after data reset:
     // {"message":"sample with id: 5b337c8d9aa1354f93f53ef9 could not be found","status":404}
     if (err) return cbk(err);
-    if (ans.hasOwnProperty('total') && Array.isArray(ans.data)) {
-      ans = ans.data;
-    }
-    // ans.splice(0, ans.length - 1); // DEBUG: Simulate constant updates
-    const samples = ans.map((d) => {
-      const date = new Date(d.timestamp);
-      return {id: d.id, topic: d.topic, timestamp: date, data: d.data};
-    });
+    const samples = ans.data;
+    // samples.splice(0, samples.length - 1); // DEBUG: Simulate constant updates
     console.log(`CACHE: loaded ${samples.length} new entries for device ${args.key}`);
     if (!isFirst && config.newSampleCallback) {
       for (var i = samples.length - 1; i >= 0; i--) {
