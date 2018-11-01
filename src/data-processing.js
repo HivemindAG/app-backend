@@ -18,6 +18,7 @@ const groupers = {
   hourOfDay: dayHoursBuckets,
   dayOfWeek: weekDayBuckets,
   hourOfWeek: weekHourBuckets,
+  dayOfMonth: monthDayBuckets,
 };
 
 function mkBuckets(nBuckets) {
@@ -50,6 +51,15 @@ function weekHourBuckets(records) {
     const day = o.timestamp.getDay();
     const hour = o.timestamp.getHours();
     const i = day * 24 + hour;
+    buckets[i].push(o);
+  });
+  return buckets;
+}
+
+function monthDayBuckets(records) {
+  const buckets = mkBuckets(31);
+  records.forEach((o) => {
+    const i = o.timestamp.getDate() - 1;
     buckets[i].push(o);
   });
   return buckets;
