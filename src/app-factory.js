@@ -43,6 +43,7 @@ function init(config) {
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
         const allowHeaders = req.header("Access-Control-Request-Headers") || 'Origin, X-Reqested-With, Accept';
         res.header('Access-Control-Allow-Headers', allowHeaders);
+        res.header('Access-Control-Max-Age', '3600');
         res.sendStatus(200);
       } else {
         next();
