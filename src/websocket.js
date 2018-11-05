@@ -16,7 +16,8 @@ module.exports = function(server) {
       auth.addSession(req, (err) => {
         if (err) return cbk(false, 403, 'Forbidden');
         // addSession might modify req.url
-        if (req.url != '/ws') return cbk(false, 404, 'Not Found');
+        const path = req.url.split('\?')[0];
+        if (path != '/ws') return cbk(false, 404, 'Not Found');
         cbk(true);
       });
     }
@@ -24,32 +25,44 @@ module.exports = function(server) {
   wss.on('connection', function connection(ws, req) {
     // client is verified
     ws.on('message', (msg) => {
-      const rpc = JSON.parse(msg);
-      if (rpc.cmd == 'subs') {
-        const subs = rpc.arg.map((arg) => arg2Sub(arg, req.session));
-        ws.subs = []; // Reset 
-        ws.subs = addSubs(ws.subs, subs);
-      }
-      if (rpc.cmd == 'sub') {
-        const sub = arg2Sub(rpc.arg, req.session);
-        if (!ws.subs) ws.subs = [];
-        ws.subs = addSub(ws.subs, sub);
-      }
-      if (rpc.cmd == 'unsub') {
-        const sub = arg2Sub(rpc.arg, req.session);
-        if (!ws.subs) ws.subs = [];
-        ws.subs = removeSub(ws.subs, sub);
-      }
-      console.log(`rec: ${msg}`);
-      // console.log(ws.subs);
-      if (rpc.hasOwnProperty('id')) {
-        ws.send(JSON.stringify({id: rpc.id}));
+      let rpc;
+      try {
+        rpc = JSON.parse(msg);
+        onMessage(ws, req, rpc);
+      } catch (ex) {
+        const ans = {};
+        ans.err = ex.message;
+        if (rpc) ans.id = rpc.id;
+        ws.send(JSON.stringify(ans));
       }
     });
   });
   dataService.config.newSampleCallback = newSample;
   poll();
 };
+
+function onMessage(ws, req, rpc) {
+  if (rpc.cmd == 'subs') {
+    const subs = rpc.arg.map((arg) => arg2Sub(arg, req.session));
+    ws.subs = []; // Reset
+    ws.subs = addSubs(ws.subs, subs);
+  }
+  if (rpc.cmd == 'sub') {
+    const sub = arg2Sub(rpc.arg, req.session);
+    if (!ws.subs) ws.subs = [];
+    ws.subs = addSub(ws.subs, sub);
+  }
+  if (rpc.cmd == 'unsub') {
+    const sub = arg2Sub(rpc.arg, req.session);
+    if (!ws.subs) ws.subs = [];
+    ws.subs = removeSub(ws.subs, sub);
+  }
+  console.log(`rec: ${msg}`);
+  // console.log(ws.subs);
+  if (rpc.hasOwnProperty('id')) {
+    ws.send(JSON.stringify({id: rpc.id}));
+  }
+}
 
 function poll() {
   let subs = {};
