@@ -57,7 +57,7 @@ function onMessage(ws, req, rpc) {
     if (!ws.subs) ws.subs = [];
     ws.subs = removeSub(ws.subs, sub);
   }
-  console.log(`rec: ${msg}`);
+  console.log(`rec: ${JSON.stringify(rpc)}`);
   // console.log(ws.subs);
   if (rpc.hasOwnProperty('id')) {
     ws.send(JSON.stringify({id: rpc.id}));
