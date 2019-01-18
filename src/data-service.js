@@ -62,11 +62,11 @@ function getProperties(entity) {
 
 const sampleCache = new Cache();
 function getSamples(session, devId, cbk) {
-  const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
+  const key = `${session.apiURL}:${session.envId}:${devId}`;
   sampleCache.get(key, cbk, fetchNewSamples, {session: session, devId: devId});
 }
 function expireSamples(session, devId) {
-  const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
+  const key = `${session.apiURL}:${session.envId}:${devId}`;
   sampleCache.expire(key);
 }
 
@@ -111,9 +111,15 @@ function fetchNewSamples(args, cbk) {
     limit: config.sampleCacheLimit,
     keys: ['id', 'topic', 'timestamp', 'data'],
   };
+  const parts = args.devId.split(':');
+  const devId = parts[0];
+  const topic = parts[1];
+  if (topic) {
+    query.topic = topic;
+  }
   const req = {
     method: 'POST',
-    url: `${args.key}/data/query`,
+    url: `${args.session.apiURL}/v1/environments/${args.session.envId}/devices/${devId}/data/query`,
     json: query,
   };
   if (old.length > 0) {
