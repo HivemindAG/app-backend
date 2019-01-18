@@ -100,6 +100,7 @@ function run(port, cbk) {
     if (typeof err === 'string') {
       err = {message: err};
     } else if (err instanceof Error) {
+      console.debug(err);
       err = {status: err.status, error: err.error, message: err.message};
     }
     if (res.statusCode == 200) {
