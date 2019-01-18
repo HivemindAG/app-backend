@@ -2,7 +2,7 @@ const apiRequest = require('./api-request');
 const Cache = require('./async-cache').Cache;
 
 const config = {
-  sampleCacheRange: 100 * 24 * 60 * 60 * 1000,
+  sampleCacheRange: null,
   sampleCacheLimit: 4000,
   sampleCacheTimeout: 20 * 1000,
   staticCacheTimeout: 4 * 60 * 1000,
@@ -19,7 +19,7 @@ function getPathRaw(session, path, cbk, keySalt) {
       qs: {limit: 1000},
     };
     apiRequest.call(session, req, (err, res, ans) => {
-      console.log(`CACHE: update ${url}`);
+      console.debug(`CACHE: update ${url}`);
       if (!err && ans.hasOwnProperty('total') && Array.isArray(ans.data)) {
         ans = ans.data;
       }
@@ -62,11 +62,11 @@ function getProperties(entity) {
 
 const sampleCache = new Cache();
 function getSamples(session, devId, cbk) {
-  const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
+  const key = `${session.apiURL}:${session.envId}:${devId}`;
   sampleCache.get(key, cbk, fetchNewSamples, {session: session, devId: devId});
 }
 function expireSamples(session, devId) {
-  const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
+  const key = `${session.apiURL}:${session.envId}:${devId}`;
   sampleCache.expire(key);
 }
 
@@ -104,21 +104,35 @@ function deviceDownlink(session, devId, data, cbk) {
 }
 
 function fetchNewSamples(args, cbk) {
+  const parts = args.devId.split(':');
+  args.devId = parts[0];
+  args.topic = parts[1];
+  getDeviceProperties(args.session, args.devId, (err, props) => {
+    if (err) return cbk(err);
+    args.limit = props.cacheLimit || config.sampleCacheLimit;
+    _fetchNewSamples(args, cbk);
+  });
+}
+
+function _fetchNewSamples(args, cbk) {
   const isFirst = !args.value;
   const old = isFirst ? [] : args.value;
   const now = Date.now();
   const query = {
-    limit: config.sampleCacheLimit,
+    limit: args.limit,
     keys: ['id', 'topic', 'timestamp', 'data'],
   };
+  if (args.topic) {
+    query.topic = args.topic;
+  }
   const req = {
     method: 'POST',
-    url: `${args.key}/data/query`,
+    url: `${args.session.apiURL}/v1/environments/${args.session.envId}/devices/${args.devId}/data/query`,
     json: query,
   };
   if (old.length > 0) {
     query.after = old[0].id;
-  } else {
+  } else if (config.sampleCacheRange !== null) {
     const minDate = new Date(now - config.sampleCacheRange).toISOString();
     query.timestamp = {gt: minDate};
   }
@@ -128,7 +142,7 @@ function fetchNewSamples(args, cbk) {
     if (err) return cbk(err);
     const samples = ans.data;
     // samples.splice(0, samples.length - 1); // DEBUG: Simulate constant updates
-    console.log(`CACHE: loaded ${samples.length} new entries for device ${args.key}`);
+    console.debug(`CACHE: loaded ${samples.length} new entries for device ${args.key}`);
     if (!isFirst && config.newSampleCallback) {
       for (var i = samples.length - 1; i >= 0; i--) {
         const event = {apiURL: args.session.apiURL, envId: args.session.envId, devId: args.devId};
@@ -139,7 +153,7 @@ function fetchNewSamples(args, cbk) {
     const nOld = Math.min(old.length, config.sampleCacheLimit - samples.length);
     for (let i = 0; i < nOld; i++) {
       const d = old[i];
-      if (d.timestamp < now - config.sampleCacheRange) break;
+      if (config.sampleCacheRange !== null && d.timestamp < now - config.sampleCacheRange) break;
       samples.push(d);
     }
     cbk(err, {value: samples, timeout: config.sampleCacheTimeout});

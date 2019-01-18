@@ -57,8 +57,8 @@ function onMessage(ws, req, rpc) {
     if (!ws.subs) ws.subs = [];
     ws.subs = removeSub(ws.subs, sub);
   }
-  console.log(`rec: ${JSON.stringify(rpc)}`);
-  // console.log(ws.subs);
+  console.debug(`rec: ${JSON.stringify(rpc)}`);
+  // console.debug(ws.subs);
   if (rpc.hasOwnProperty('id')) {
     ws.send(JSON.stringify({id: rpc.id}));
   }
@@ -122,7 +122,7 @@ function deviceUID(sub) {
 }
 
 function subMatch(sub, event) {
-  // console.log(JSON.stringify(sub), JSON.stringify(event));
+  // console.debug(JSON.stringify(sub), JSON.stringify(event));
   // TODO: type?
   if (sub.apiURL != event.apiURL) return false;
   if (sub.envId != event.envId) return false;
