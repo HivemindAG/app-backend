@@ -83,6 +83,14 @@ function run(port, cbk) {
    * Error handling
    */
 
+  const statusCodes = {
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    500: 'Internal Server Error',
+  };
+
   app.use(function (req, res, next) {
     res.status(404);
     next(`Invalid path: '${req.url}'`);
@@ -91,6 +99,8 @@ function run(port, cbk) {
   app.use(function (err, req, res, next) {
     if (typeof err === 'string') {
       err = {message: err};
+    } else if (err instanceof Error) {
+      err = {status: err.status, error: err.error, message: err.message};
     }
     if (res.statusCode == 200) {
       res.status(500);
@@ -101,10 +111,11 @@ function run(port, cbk) {
       err.status = res.statusCode;
     }
     if (!err.error) {
-      // TODO: set according to error.status
-      // err.error = 'Internal Server Error';
+      err.error = statusCodes[err.status];
     }
-    console.debug(err);
+    if (err.status === 500) {
+      console.error("ERROR: " + JSON.stringify(err));
+    }
     res.send(err);
   });
 
