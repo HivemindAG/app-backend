@@ -124,6 +124,7 @@ function query(samples, filter, limit, offset) {
     if (n == end) break;
     out.push(d);
   }
+  console.log(`>>> ${n}`);
   return out;
 };
 

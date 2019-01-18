@@ -61,13 +61,48 @@ function getProperties(entity) {
 }
 
 const sampleCache = new Cache();
-function getSamples(session, devId, cbk) {
-  const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
-  sampleCache.get(key, cbk, fetchNewSamples, {session: session, devId: devId});
+function getSamples(session, devId, topic, cbk) {
+  bump(session.apiURL, session.envId, devId, topic);
+  var key = `${session.apiURL}/${session.envId}/${devId}`;
+  if (topic) key = `${key}/${topic}`;
+  sampleCache.get(key, cbk, fetchNewSamples, {session: session, devId: devId, topic: topic});
 }
-function expireSamples(session, devId) {
-  const key = `${session.apiURL}/v1/environments/${session.envId}/devices/${devId}`;
-  sampleCache.expire(key);
+function expireSamples(session, devId, topic) {
+  const base = `${session.apiURL}/${session.envId}/${devId}`;
+  if (topic) {
+    const key = `${base}/${topic}`;
+    sampleCache.expire(key);
+  } else {
+    sampleCache.expire(base);
+    const topics = pathGet(accessTree, [session.apiURL, session.envId, devId]) || {};
+    for (const topic in topics) {
+      if (topic === '*') continue;
+      sampleCache.expire(`${base}/${topic}`);
+    }
+  }
+}
+
+const accessTree = {};
+function bump(apiURL, envId, devId, topic) {
+  const path = [apiURL, envId, devId, topic || '*'];
+  let node = accessTree;
+  path.forEach((p) => {
+    if (!node.hasOwnProperty(p)) {
+      node[p] = {};
+    }
+    node = node[p];
+  });
+  node.n = (node.n || 0) + 1;
+  node.d = new Date();
+  // console.log(JSON.stringify(accessTree));
+}
+function pathGet(obj, path) {
+  let node = obj;
+  path.forEach((p) => {
+    if (!node) return;
+    node = node[p];
+  });
+  return node;
 }
 
 function deviceUplink(session, devId, data, cbk) {
@@ -111,6 +146,9 @@ function fetchNewSamples(args, cbk) {
     limit: config.sampleCacheLimit,
     keys: ['id', 'topic', 'timestamp', 'data'],
   };
+  if (args.topic) {
+    query.topic = args.topic;
+  }
   const req = {
     method: 'POST',
     url: `${args.key}/data/query`,

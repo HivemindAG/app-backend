@@ -14,7 +14,7 @@ router.get('/devices/:id/query', (req, res, next) => {
   Object.assign(q, req.query);
   util.mapPick(q, ['limit', 'offset'], parseInt);
   const filter = data.filterForQuery(q);
-  dataService.getSamples(req.session, req.params.id, (err, samples) => {
+  dataService.getSamples(req.session, req.params.id, q.topic, (err, samples) => {
     if (err) return next(err);
     samples = data.query(samples, filter, q.limit, q.offset);
     if (q.keys) {
@@ -34,7 +34,7 @@ router.get('/devices/:id/trend', (req, res, next) => {
   util.mapPick(q, ['limit', 'offset'], parseInt);
   const keys = q.keys ? q.keys.split(',') : [];
   const filter = data.filterForQuery(q);
-  dataService.getSamples(req.session, req.params.id, (err, samples) => {
+  dataService.getSamples(req.session, req.params.id, q.topic, (err, samples) => {
     if (err) return next(err);
     samples = data.query(samples, filter, q.limit, q.offset);
     if (samples.length < 2) return next("Not enough samples");
@@ -72,7 +72,7 @@ router.get('/devices/:id/aggregate', (req, res, next) => {
   const grouper = data.groupers[q.group];
   const aggregator = data.aggregators[q.agg];
   const filter = data.filterForQuery(q);
-  dataService.getSamples(req.session, req.params.id, (err, samples) => {
+  dataService.getSamples(req.session, req.params.id, q.topic, (err, samples) => {
     if (err) return next(err);
     samples = data.query(samples, filter, q.limit, q.offset);
     const out = {};
@@ -104,7 +104,7 @@ router.get('/devices/:id/interval', (req, res, next) => {
   const grouper = data.intervalBucketsFactory(startDate, q.interval, q.limit);
   const aggregator = data.aggregators[q.agg];
   const filter = data.filterForQuery(q);
-  dataService.getSamples(req.session, req.params.id, (err, samples) => {
+  dataService.getSamples(req.session, req.params.id, q.topic, (err, samples) => {
     if (err) return next(err);
     samples = data.query(samples, filter, -1, 0);
     const out = {};

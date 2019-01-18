@@ -81,7 +81,7 @@ function pollDevices(subs, cbk) {
   if (subs.length == 0) return cbk();
   const sub = subs.pop();
   dataService.expireSamples(sub, sub.devId);
-  dataService.getSamples(sub, sub.devId, () => pollDevices(subs, cbk));
+  dataService.getSamples(sub, sub.devId, null, () => pollDevices(subs, cbk));
 }
 
 // TODO: test if order is correct when multiple samples get added
