@@ -104,22 +104,30 @@ function deviceDownlink(session, devId, data, cbk) {
 }
 
 function fetchNewSamples(args, cbk) {
+  const parts = args.devId.split(':');
+  args.devId = parts[0];
+  args.topic = parts[1];
+  getDeviceProperties(args.session, args.devId, (err, props) => {
+    if (err) return cbk(err);
+    args.limit = props.cacheLimit || config.sampleCacheLimit;
+    _fetchNewSamples(args, cbk);
+  });
+}
+
+function _fetchNewSamples(args, cbk) {
   const isFirst = !args.value;
   const old = isFirst ? [] : args.value;
   const now = Date.now();
   const query = {
-    limit: config.sampleCacheLimit,
+    limit: args.limit,
     keys: ['id', 'topic', 'timestamp', 'data'],
   };
-  const parts = args.devId.split(':');
-  const devId = parts[0];
-  const topic = parts[1];
-  if (topic) {
-    query.topic = topic;
+  if (args.topic) {
+    query.topic = args.topic;
   }
   const req = {
     method: 'POST',
-    url: `${args.session.apiURL}/v1/environments/${args.session.envId}/devices/${devId}/data/query`,
+    url: `${args.session.apiURL}/v1/environments/${args.session.envId}/devices/${args.devId}/data/query`,
     json: query,
   };
   if (old.length > 0) {
