@@ -21,7 +21,7 @@ The app backend caches most requests to improve response time and reduce the loa
 
 Changes made to any entities might not be visible for up to 4 minutes (e.g. changing a device name or adding a new device). For long entity lists only the first 1000 entries will be returned.
 
-The first time samples for a device are requested, the backend will load and cache the last 4000 samples from up to 100 days ago. After this, it will check for new data at least every 20 seconds. While this massively improves the response time for sample queries, only recent samples will be available.
+The first time samples for a device are requested, the backend will load and cache the last 4000 samples. After this, it will check for new data at least every 20 seconds. While this massively improves the response time for sample queries, only recent samples will be available.
 
 The cache expects samples to be added *in sequence*. Since the cache will only load samples with a timestamp newer than the most recent sample already cached, samples might be skipped if they are created with an "old" timestamp.
 
@@ -60,8 +60,9 @@ Virtual topic devices have their own separate cache, which has some advantages:
   * Hivemind Platform API URL (String)
   * Default: `"https://api.hivemind.ch"`
 * `dataService.sampleCacheRange`
-  * Sample caching duration [ms]
-  * Default: `1296000000` (15 days)
+  * Ignore samples older than [ms]
+  * `null` means unlimited
+  * Default: `null`
 * `dataService.sampleCacheLimit`
   * Maximum number of cached samples per device
   * Default: `4000`

@@ -2,7 +2,7 @@ const apiRequest = require('./api-request');
 const Cache = require('./async-cache').Cache;
 
 const config = {
-  sampleCacheRange: 100 * 24 * 60 * 60 * 1000,
+  sampleCacheRange: null,
   sampleCacheLimit: 4000,
   sampleCacheTimeout: 20 * 1000,
   staticCacheTimeout: 4 * 60 * 1000,
@@ -124,7 +124,7 @@ function fetchNewSamples(args, cbk) {
   };
   if (old.length > 0) {
     query.after = old[0].id;
-  } else {
+  } else if (config.sampleCacheRange !== null) {
     const minDate = new Date(now - config.sampleCacheRange).toISOString();
     query.timestamp = {gt: minDate};
   }
@@ -145,7 +145,7 @@ function fetchNewSamples(args, cbk) {
     const nOld = Math.min(old.length, config.sampleCacheLimit - samples.length);
     for (let i = 0; i < nOld; i++) {
       const d = old[i];
-      if (d.timestamp < now - config.sampleCacheRange) break;
+      if (config.sampleCacheRange !== null && d.timestamp < now - config.sampleCacheRange) break;
       samples.push(d);
     }
     cbk(err, {value: samples, timeout: config.sampleCacheTimeout});
