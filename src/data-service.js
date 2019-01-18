@@ -19,7 +19,7 @@ function getPathRaw(session, path, cbk, keySalt) {
       qs: {limit: 1000},
     };
     apiRequest.call(session, req, (err, res, ans) => {
-      console.log(`CACHE: update ${url}`);
+      console.debug(`CACHE: update ${url}`);
       if (!err && ans.hasOwnProperty('total') && Array.isArray(ans.data)) {
         ans = ans.data;
       }
@@ -128,7 +128,7 @@ function fetchNewSamples(args, cbk) {
     if (err) return cbk(err);
     const samples = ans.data;
     // samples.splice(0, samples.length - 1); // DEBUG: Simulate constant updates
-    console.log(`CACHE: loaded ${samples.length} new entries for device ${args.key}`);
+    console.debug(`CACHE: loaded ${samples.length} new entries for device ${args.key}`);
     if (!isFirst && config.newSampleCallback) {
       for (var i = samples.length - 1; i >= 0; i--) {
         const event = {apiURL: args.session.apiURL, envId: args.session.envId, devId: args.devId};

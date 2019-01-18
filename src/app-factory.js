@@ -36,7 +36,7 @@ function init(config) {
 
   if (conf.cors) {
     app.use((req, res, next) => {
-      console.log(req.method + ' ' + req.url);
+      console.debug(req.method + ' ' + req.url);
       res.header('Access-Control-Allow-Origin', '*');
       if (req.method == 'OPTIONS') {
         // Preflight
@@ -104,7 +104,7 @@ function run(port, cbk) {
       // TODO: set according to error.status
       // err.error = 'Internal Server Error';
     }
-    console.log(err);
+    console.debug(err);
     res.send(err);
   });
 
