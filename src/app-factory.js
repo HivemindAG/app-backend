@@ -116,8 +116,9 @@ function run(port, cbk) {
     }
     if (err.status === 500) {
       console.error("ERROR: " + JSON.stringify(err));
+      delete err.message;
     }
-    res.send(err);
+    res.send({status: err.status, error: err.error, message: err.message});
   });
 
 
