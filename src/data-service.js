@@ -141,6 +141,7 @@ function _fetchNewSamples(args, cbk) {
     // {"message":"sample with id: 5b337c8d9aa1354f93f53ef9 could not be found","status":404}
     if (err) return cbk(err);
     const samples = ans.data;
+    if (!samples) return cbk({message: 'unexpected response', info: ans})
     samples.forEach((d) => d.timestamp = new Date(d.timestamp));
     // samples.splice(0, samples.length - 1); // DEBUG: Simulate constant updates
     console.debug(`CACHE: loaded ${samples.length} new entries for device ${args.key}`);
