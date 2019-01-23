@@ -67,6 +67,9 @@ Virtual topic devices have their own separate cache, which has some advantages:
   * Maximum number of cached samples per device
   * Can be adjusted per device by providing a `cacheLimit` property
   * Default: `4000`
+* `dataService.sampleCacheLimitMax`
+  * Maximum allowed number for `sampleCacheLimit`
+  * Default: `8000`
 * `dataService.sampleCacheTimeout`
   * Look for new samples after… [ms]
   * Default: `20000` (20 seconds)
