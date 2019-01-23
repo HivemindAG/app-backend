@@ -78,6 +78,10 @@ function run(port, cbk) {
 
   require('./websocket')(server);
 
+  const handlerHook = module.exports.handlerHook;
+  if (handlerHook) {
+    handlerHook(app);
+  }
 
   /**
    * Error handling
@@ -143,4 +147,5 @@ module.exports = {
   server: server,
   init: init,
   run: run,
+  handlerHook: null,
 };
