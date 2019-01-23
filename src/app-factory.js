@@ -78,6 +78,10 @@ function run(port, cbk) {
 
   require('./websocket')(server);
 
+  const handlerHook = module.exports.handlerHook;
+  if (handlerHook) {
+    handlerHook(app);
+  }
 
   /**
    * Error handling
@@ -115,6 +119,8 @@ function run(port, cbk) {
       err.error = statusCodes[err.status];
     }
     if (err.status === 500) {
+      err.method = req.method;
+      err.url = req.url;
       console.error("ERROR: " + JSON.stringify(err));
       delete err.message;
     }
@@ -142,4 +148,5 @@ module.exports = {
   server: server,
   init: init,
   run: run,
+  handlerHook: null,
 };

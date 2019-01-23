@@ -4,6 +4,7 @@ const Cache = require('./async-cache').Cache;
 const config = {
   sampleCacheRange: null,
   sampleCacheLimit: 4000,
+  sampleCacheLimitMax: 8000,
   sampleCacheTimeout: 20 * 1000,
   staticCacheTimeout: 4 * 60 * 1000,
   newSampleCallback: null,
@@ -110,6 +111,11 @@ function fetchNewSamples(args, cbk) {
   getDeviceProperties(args.session, args.devId, (err, props) => {
     if (err) return cbk(err);
     args.limit = props.cacheLimit || config.sampleCacheLimit;
+    if (args.limit > config.sampleCacheLimitMax) {
+      // Use non-500 status code to allow sending message to client
+      const msg = `cacheLimit too high (is ${args.limit}, but must be bellow ${config.sampleCacheLimitMax})`;
+      return cbk({status: 520, message: msg});
+    }
     _fetchNewSamples(args, cbk);
   });
 }
