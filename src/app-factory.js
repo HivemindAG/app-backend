@@ -115,6 +115,7 @@ function run(port, cbk) {
       err.error = statusCodes[err.status];
     }
     if (err.status === 500) {
+      err.url = req.url;
       console.error("ERROR: " + JSON.stringify(err));
       delete err.message;
     }
