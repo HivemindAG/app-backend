@@ -35,7 +35,7 @@ function finalizeDevice(session, raw, keys, cbk) {
 function getDevices(session, q, keys, cbk) {
   const sep = q.length > 0 ? '&' : '';
   dataService.getPath(session, `/devices?${q}${sep}limit=1000`, (err, ans) => {
-    if (err) return next(err);
+    if (err) return cbk(err);
     asyncMap(ans, (el, cbk) => {
       finalizeDevice(session, el, keys, cbk);
     }, cbk);
