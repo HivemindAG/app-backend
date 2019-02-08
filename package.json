@@ -19,9 +19,9 @@
   "repository": "github:HivemindAG/app-backend",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.16.2",
+    "express": "^4.16.4",
     "minimist": "^1.2.0",
-    "request": "^2.87.0",
-    "ws": "^5.2.0"
+    "request": "^2.88.0",
+    "ws": "^5.2.2"
   }
 }
