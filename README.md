@@ -8,7 +8,7 @@ We host a [shared instance](https://github.com/HivemindAG/app-backend/wiki/Share
 
 
 ```bash
-git checkout git@github.com:HivemindAG/app-backend.git
+git clone git@github.com:HivemindAG/app-backend.git
 cd app-backend
 npm install
 npm start -- --key <your-api-key>
