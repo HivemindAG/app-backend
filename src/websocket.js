@@ -36,10 +36,25 @@ module.exports = function(server) {
         ws.send(JSON.stringify(ans));
       }
     });
+    // Handle ping pong
+    ws.isAlive = true;
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
   });
   dataService.config.newSampleCallback = newSample;
   poll();
+  // Send regular pings to provide keep-alive to proxies and remove dead connections
+  setInterval(ping, 30000);
 };
+
+function ping() {
+  wss.clients.forEach((ws) => {
+    if (ws.isAlive === false) return ws.terminate();
+    ws.isAlive = false;
+    ws.ping();
+  });
+}
 
 function onMessage(ws, req, rpc) {
   if (rpc.cmd == 'subs') {

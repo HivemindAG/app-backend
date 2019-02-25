@@ -8,7 +8,7 @@ We host a [shared instance](https://github.com/HivemindAG/app-backend/wiki/Share
 
 
 ```bash
-git checkout git@github.com:HivemindAG/app-backend.git
+git clone git@github.com:HivemindAG/app-backend.git
 cd app-backend
 npm install
 npm start -- --key <your-api-key>
@@ -51,9 +51,15 @@ Virtual topic devices have their own separate cache, which has some advantages:
   * Server port; default: `8080`
 * `$APP_CONFIG`
   * App configuration object (JSON)
+* `$DEBUG`
+  * Sets the `debug` configuration property
+  * Casted to a boolean, so an empty string is `false`
 
 ## App Configuration Object Properties
 
+* `debug`
+  * More verbose console output (Boolean)
+  * Default: `false`
 * `auth.session.apiKey`
   * Hivemind Platform API key (String)
 * `auth.session.apiURL`
