@@ -112,34 +112,28 @@ function max(arr) {
   return Math.max.apply(null, arr);
 }
 
-function query(samples, filter, limit, offset) {
-  let n = -1;
+function query(cursor, q, limit, offset, cbk) {
+  let i = -1;
   const end = offset + limit;
   const out = [];
-  for (let i = 0; i < samples.length; i += 1) {
-    const d = samples[i];
-    if (filter && !filter(d)) continue;
-    n += 1;
-    if (n < offset) continue;
-    if (n == end) break;
-    out.push(d);
-  }
-  return out;
+  const minDate = q.minDate ? new Date(q.minDate) : null;
+  const maxDate = q.maxDate ? new Date(q.maxDate) : null;
+  cursor.forEach((sample) => {
+    if (maxDate && sample.timestamp > maxDate) return true;
+    if (minDate && sample.timestamp < minDate) return false;
+    i += 1;
+    if (i < offset) return true;
+    if (i == end) return false;
+    out.push(sample);
+    return true;
+  }, (err) => {
+    if (err) return cbk(err);
+    cbk(null, out);
+  });
 };
 
 function filterForQuery(q) {
   const filters = [];
-  if (q.hasOwnProperty('topic')) {
-    filters.push((o) => o.topic === q.topic);
-  }
-  if (q.hasOwnProperty('topics')) {
-    const topics = q.topics.split(',');
-    if (topics.length > 1) {
-      filters.push((o) => topics.includes(o.topic));
-    } else if (q.topics !== '*') {
-      filters.push((o) => o.topic === q.topics);
-    }
-  }
   if (q.hasOwnProperty('minDate')) {
     const min = new Date(q.minDate).getTime();
     filters.push((o) => o.timestamp >= min);
@@ -149,6 +143,7 @@ function filterForQuery(q) {
     filters.push((o) => o.timestamp <= max);
   }
   if (filters.length === 0) return null;
+  if (filters.length === 1) return filters[0];
   return (o) => {
     for (var i = 0; i < filters.length; i++) {
       if (!filters[i](o)) return false;

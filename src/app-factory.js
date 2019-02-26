@@ -75,6 +75,7 @@ function run(port, cbk) {
 
   app.use('/', require('./router-entities'));
   app.use('/', require('./router-samples'));
+  app.use('/', require('./router-actions'));
 
   require('./websocket')(server);
 

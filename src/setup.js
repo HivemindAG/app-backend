@@ -1,9 +1,10 @@
 const config = {
   debug: process.env.DEBUG ? true : false,
-  dataService: require('./data-service').config,
+  cache: require('hivemind-app-cache').config,
   auth: require('./auth').config,
-  request: require('./api-request').config,
 };
+
+config.cache.debug = config.debug;
 
 function load(conf) {
   Object.keys(conf).forEach((key) => Object.assign(config[key], conf[key]));

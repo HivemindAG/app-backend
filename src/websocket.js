@@ -1,6 +1,5 @@
 const WebSocket = require('ws');
 
-const dataService = require('./data-service');
 const auth = require('./auth');
 
 // maybe use https://github.com/olalonde/express-websocket
@@ -42,7 +41,7 @@ module.exports = function(server) {
       ws.isAlive = true;
     });
   });
-  dataService.config.newSampleCallback = newSample;
+  // dataService.config.newSampleCallback = newSample;
   poll();
   // Send regular pings to provide keep-alive to proxies and remove dead connections
   setInterval(ping, 30000);
@@ -95,8 +94,8 @@ function poll() {
 function pollDevices(subs, cbk) {
   if (subs.length == 0) return cbk();
   const sub = subs.pop();
-  dataService.expireSamples(sub, sub.devId);
-  dataService.getSamples(sub, sub.devId, () => pollDevices(subs, cbk));
+  // dataService.expireSamples(sub, sub.devId);
+  // dataService.getSamples(sub, sub.devId, () => pollDevices(subs, cbk));
 }
 
 // TODO: test if order is correct when multiple samples get added
