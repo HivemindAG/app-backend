@@ -112,50 +112,8 @@ function max(arr) {
   return Math.max.apply(null, arr);
 }
 
-function query(cursor, q, limit, offset, cbk) {
-  let i = -1;
-  const end = offset + limit;
-  const out = [];
-  const minDate = q.minDate ? new Date(q.minDate) : null;
-  const maxDate = q.maxDate ? new Date(q.maxDate) : null;
-  cursor.forEach((sample) => {
-    if (maxDate && sample.timestamp > maxDate) return true;
-    if (minDate && sample.timestamp < minDate) return false;
-    i += 1;
-    if (i < offset) return true;
-    if (i == end) return false;
-    out.push(sample);
-    return true;
-  }, (err) => {
-    if (err) return cbk(err);
-    cbk(null, out);
-  });
-};
-
-function filterForQuery(q) {
-  const filters = [];
-  if (q.hasOwnProperty('minDate')) {
-    const min = new Date(q.minDate).getTime();
-    filters.push((o) => o.timestamp >= min);
-  }
-  if (q.hasOwnProperty('maxDate')) {
-    const max = new Date(q.maxDate).getTime();
-    filters.push((o) => o.timestamp <= max);
-  }
-  if (filters.length === 0) return null;
-  if (filters.length === 1) return filters[0];
-  return (o) => {
-    for (var i = 0; i < filters.length; i++) {
-      if (!filters[i](o)) return false;
-    }
-    return true;
-  };
-}
-
 module.exports = {
-  query,
   serialize,
-  filterForQuery,
   intervalBucketsFactory,
   intervalBucketsTimestamps,
   groupers,
