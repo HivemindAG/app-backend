@@ -36,8 +36,9 @@ Only the most recent 4000 samples can be accessed for every topic. New samples a
 
 * `$PORT`
   * Server port; default: `8080`
-* `$APP_CONFIG`
+* `$CONFIG`
   * App configuration object (JSON)
+  * Use key-paths to overwrite single values within objects (e.g. `{"platform.concurrentRequests": 4}`)
 * `$DEBUG`
   * Sets the `debug` configuration property
   * Casted to a boolean, so an empty string is `false`
@@ -47,25 +48,22 @@ Only the most recent 4000 samples can be accessed for every topic. New samples a
 * `debug`
   * More verbose console output (Boolean)
   * Default: `false`
-* `auth.session.apiKey`
+* `apiKey`
   * Hivemind Platform API key (String)
-* `auth.session.apiURL`
+* `apiURL`
   * Hivemind Platform API URL (String)
   * Default: `"https://api.hivemind.ch"`
-* `dataService.sampleCacheLimit`
+* `sampleCacheLimit`
   * Maximum number of cached samples per device
   * Can be adjusted per device by providing a `cacheLimit` property
   * Default: `4000`
-* `dataService.sampleCacheLimitMax`
+* `sampleCacheLimitMax`
   * Maximum allowed number for `sampleCacheLimit`
   * Default: `8000`
-* `dataService.sampleCacheTimeout`
-  * Look for new samples after… [ms]
-  * Default: `20000` (20 seconds)
-* `dataService.staticCacheTimeout`
+* `platform.entityCacheTimeout`
   * Cache entities for… [ms]
   * Default: `240000` (4 minutes)
-* `request.concurrent`
+* `platform.concurrentRequests`
   * Limit the number of concurrent Platform API requests
   * `0` for unlimited
   * Default: `8`

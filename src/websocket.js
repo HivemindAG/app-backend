@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 const platform = require('hivemind-app-cache');
 
-const auth = require('./auth');
+const middleware = require('./middleware');
 
 // maybe use https://github.com/olalonde/express-websocket
 // maybe use https://github.com/HenningM/express-ws
@@ -13,7 +13,7 @@ module.exports = function(server) {
     server,
     verifyClient: (info, cbk) => {
       const req = info.req;
-      auth.addSession(req, (err) => {
+      middleware.addSessionHandler(req, (err) => {
         if (err) return cbk(false, 403, 'Forbidden');
         // addSession might modify req.url
         const path = req.url.split('\?')[0];
@@ -144,6 +144,7 @@ function addSub(arr, sub) {
     if (subMatch(arr[i], sub)) return;
   }
   arr.push(sub);
+  // TODO: Request sample in case there is no connection yet
   return arr;
 }
 

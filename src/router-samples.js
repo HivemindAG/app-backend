@@ -1,15 +1,11 @@
 const express = require('express');
 const platform = require('hivemind-app-cache');
-const util = require('./util');
+
+const config = require('./config');
 const data = require('./data-processing');
 
 const router = express.Router();
 module.exports = router;
-
-const config = {
-  sampleCacheLimit: 4000,
-  sampleCacheLimitMax: 8000,
-};
 
 function query(session, devId, q, cbk) {
   if (typeof q.topic !== 'string') return cbk(`Missing query argument: topic`);
@@ -44,13 +40,17 @@ function query(session, devId, q, cbk) {
   });
 }
 
+function intCast(obj, keys) {
+  keys.forEach((k) => obj[k] = parseInt(obj[k], 10));
+}
+
 router.get('/devices/:id/query', (req, res, next) => {
   const q = {
     limit: 10,
     offset: 0
   };
   Object.assign(q, req.query);
-  util.mapPick(q, ['limit', 'offset'], parseInt);
+  intCast(q, ['limit', 'offset']);
   query(req.session, req.params.id, q, (err, samples) => {
     if (err) return next(err);
     if (q.keys) {
@@ -71,7 +71,7 @@ router.get('/devices/:id/aggregate', (req, res, next) => {
   Object.assign(q, req.query);
   if (!data.groupers.hasOwnProperty(q.group)) return next(`Invalid group type: ${q.group}`);
   if (!data.aggregators.hasOwnProperty(q.agg)) return next(`Invalid aggregator type: ${q.agg}`);
-  util.mapPick(q, ['limit', 'offset'], parseInt);
+  intCast(q, ['limit', 'offset']);
   const keys = q.keys ? q.keys.split(',') : [];
   const grouper = data.groupers[q.group];
   const aggregator = data.aggregators[q.agg];
@@ -97,7 +97,7 @@ router.get('/devices/:id/interval', (req, res, next) => {
   };
   Object.assign(q, req.query);
   if (!data.aggregators.hasOwnProperty(q.agg)) return next(`Invalid aggregator type: ${q.agg}`);
-  util.mapPick(q, ['limit', 'offset', 'interval'], parseInt);
+  intCast(q, ['limit', 'offset', 'interval']);
   const bucketOffset = q.offset;
   const bucketLimit = q.limit;
   const bucketInterval = q.interval;
