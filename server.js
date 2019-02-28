@@ -54,6 +54,9 @@ app.use('/', modules.routers.entities);
 app.use('/', modules.routers.samples);
 app.use('/', modules.routers.actions);
 
+app.use(modules.middleware.notFound);
+app.use(modules.middleware.error);
+
 modules.websocket(server);
 
 let port = config.port;
