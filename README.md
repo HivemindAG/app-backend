@@ -50,7 +50,7 @@ Only the most recent 4000 samples can be accessed for every topic. New samples a
   * Default: `false`
 * `apiKey`
   * Hivemind Platform API key (String)
-* `apiURL`
+* `platform.apiURL`
   * Hivemind Platform API URL (String)
   * Default: `"https://api.hivemind.ch"`
 * `sampleCacheLimit`
