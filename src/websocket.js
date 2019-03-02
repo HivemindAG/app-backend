@@ -60,12 +60,12 @@ function onMessage(ws, req, rpc) {
   if (rpc.cmd == 'subs') {
     const subs = rpc.arg.map((arg) => arg2Sub(arg, req.session));
     ws.subs = []; // Reset
-    ws.subs = addSubs(ws.subs, subs);
+    addSubs(req.session, ws.subs, subs);
   }
   if (rpc.cmd == 'sub') {
     const sub = arg2Sub(rpc.arg, req.session);
     if (!ws.subs) ws.subs = [];
-    ws.subs = addSub(ws.subs, sub);
+    addSub(req.session, ws.subs, sub);
   }
   if (rpc.cmd == 'unsub') {
     const sub = arg2Sub(rpc.arg, req.session);
@@ -112,10 +112,15 @@ function sampleInvalidate(event) {
   };
   wss.clients.forEach((ws) => {
     if (!ws.subs) return;
+    let hasMatches = false;
     ws.subs.forEach((sub) => {
       if (!subMatch(sub, event)) return;
-      ws.send(JSON.stringify(msg));
+      hasMatches = true;
+      ws.subs = removeSub(ws.subs, sub);
     });
+    if (hasMatches) {
+      ws.send(JSON.stringify(msg));
+    }
   });
 }
 
@@ -134,18 +139,24 @@ function subMatch(sub, event) {
   return true;
 }
 
-function addSubs(arr, subs) {
-  subs.forEach((sub) => addSub(arr, sub));
-  return arr;
+function addSubs(session, arr, subs) {
+  subs.forEach((sub) => addSub(session, arr, sub));
 }
 
-function addSub(arr, sub) {
+function addSub(session, arr, sub) {
+  if (Object.values(sub).some(v => v == null)) return;
   for (var i = 0; i < arr.length; i++) {
     if (subMatch(arr[i], sub)) return;
   }
+  if (!platform.hasSampleCache(sub.envId, sub.devId, sub.topic)) {
+    // Request one sample to enable cache events
+    const cursor = new platform.SampleCursor(session, sub.devId, sub.topic);
+    cursor.forEach((sample) => false, (err) => {
+      if (err) console.error(err);
+    });
+  }
   arr.push(sub);
-  // TODO: Request sample in case there is no connection yet
-  return arr;
+  return;
 }
 
 function removeSub(arr, sub) {
