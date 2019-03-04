@@ -13,28 +13,12 @@ const args = require('minimist')(process.argv.slice(2));
 config.debug = process.env.DEBUG ? true : false;
 config.platform = modules.platform.config;
 
-confLoad(process.env.CONFIG);
-confLoad(args.config);
+modules.keyPathAssign(config, JSON.parse(process.env.CONFIG || null));
+modules.keyPathAssign(config, JSON.parse(args.config || null));
 
 config.apiKey = args.key || config.apiKey;
 config.port = args.port || process.env.PORT || config.port;
 config.platform.debug = config.debug;
-
-function confLoad(confStr) {
-  if (!confStr) return;
-  const conf = JSON.parse(confStr);
-  for (const key in conf) {
-    confSet(key, conf[key]);
-  }
-}
-
-function confSet(keyPath, value) {
-  let obj = config;
-  const path = keyPath.split('.');
-  const key = path.pop();
-  path.forEach((k) => obj = obj[k]);
-  obj[key] = value;
-}
 
 /**
  * Create server

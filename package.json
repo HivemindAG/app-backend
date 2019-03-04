@@ -19,7 +19,7 @@
   "repository": "github:HivemindAG/app-backend",
   "license": "MIT",
   "dependencies": {
-    "hivemind-app-cache": "github:HivemindAG/app-cache#4a92c24280603ffda604edeeeadbdcee2d9931b4",
+    "hivemind-app-cache": "github:HivemindAG/app-cache#79d09c2ea4be8a6311122baa79490fb7b1c24864",
     "express": "^4.16.4",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
