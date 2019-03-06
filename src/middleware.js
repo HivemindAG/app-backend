@@ -1,5 +1,6 @@
-const config = require('./config');
 const platform = require('hivemind-app-cache');
+
+const config = require('./config');
 
 function cors(req, res, next) {
   if (config.debug) console.info(req.method + ' ' + req.url);

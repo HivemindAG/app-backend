@@ -1,48 +1,10 @@
 const express = require('express');
-const platform = require('hivemind-app-cache');
 
-const config = require('./config');
 const data = require('./data-processing');
+const helpers = require('./helpers');
 
 const router = express.Router();
 module.exports = router;
-
-function query(session, devId, q, cbk) {
-  if (typeof q.topic !== 'string') return cbk(`Missing query argument: topic`);
-  platform.entities.getSingle(session, '/devices', devId, (err, ans) => {
-    if (err) return cbk(err);
-    const props = ans.properties || {};
-    const limit = props.cacheLimit || config.sampleCacheLimit;
-    if (limit > config.sampleCacheLimitMax) {
-      // Use non-500 status code to allow sending message to client
-      const msg = `cacheLimit too high (is ${limit}, but must be bellow ${config.sampleCacheLimitMax})`;
-      return cbk({status: 520, message: msg});
-    }
-    const cursor = new platform.SampleCursor(session, devId, q.topic);
-    cursor.limit = limit;
-    let i = -1;
-    const end = q.offset + q.limit;
-    const samples = [];
-    const minDate = q.minDate ? new Date(q.minDate) : null;
-    const maxDate = q.maxDate ? new Date(q.maxDate) : null;
-    cursor.forEach((sample) => {
-      if (maxDate && sample.timestamp > maxDate) return true;
-      if (minDate && sample.timestamp < minDate) return false;
-      i += 1;
-      if (i < q.offset) return true;
-      if (i == end) return false;
-      samples.push(sample);
-      return true;
-    }, (err) => {
-      if (err) return cbk(err);
-      cbk(null, samples);
-    });
-  });
-}
-
-function intCast(obj, keys) {
-  keys.forEach((k) => obj[k] = parseInt(obj[k], 10));
-}
 
 router.get('/devices/:id/query', (req, res, next) => {
   const q = {
@@ -50,8 +12,8 @@ router.get('/devices/:id/query', (req, res, next) => {
     offset: 0
   };
   Object.assign(q, req.query);
-  intCast(q, ['limit', 'offset']);
-  query(req.session, req.params.id, q, (err, samples) => {
+  helpers.intCast(q, ['limit', 'offset']);
+  helpers.query(req.session, req.params.id, q, (err, samples) => {
     if (err) return next(err);
     if (q.keys) {
       const keys = q.keys.split(',');
@@ -71,11 +33,11 @@ router.get('/devices/:id/aggregate', (req, res, next) => {
   Object.assign(q, req.query);
   if (!data.groupers.hasOwnProperty(q.group)) return next(`Invalid group type: ${q.group}`);
   if (!data.aggregators.hasOwnProperty(q.agg)) return next(`Invalid aggregator type: ${q.agg}`);
-  intCast(q, ['limit', 'offset']);
+  helpers.intCast(q, ['limit', 'offset']);
   const keys = q.keys ? q.keys.split(',') : [];
   const grouper = data.groupers[q.group];
   const aggregator = data.aggregators[q.agg];
-  query(req.session, req.params.id, q, (err, samples) => {
+  helpers.query(req.session, req.params.id, q, (err, samples) => {
     if (err) return next(err);
     const out = {};
     let groups = grouper(samples);
@@ -97,7 +59,7 @@ router.get('/devices/:id/interval', (req, res, next) => {
   };
   Object.assign(q, req.query);
   if (!data.aggregators.hasOwnProperty(q.agg)) return next(`Invalid aggregator type: ${q.agg}`);
-  intCast(q, ['limit', 'offset', 'interval']);
+  helpers.intCast(q, ['limit', 'offset', 'interval']);
   const bucketOffset = q.offset;
   const bucketLimit = q.limit;
   const bucketInterval = q.interval;
@@ -110,7 +72,7 @@ router.get('/devices/:id/interval', (req, res, next) => {
   const keys = q.keys ? q.keys.split(',') : [];
   const grouper = data.intervalBucketsFactory(startDate, bucketInterval, bucketLimit);
   const aggregator = data.aggregators[q.agg];
-  query(req.session, req.params.id, q, (err, samples) => {
+  helpers.query(req.session, req.params.id, q, (err, samples) => {
     if (err) return next(err);
     const out = {};
     out.timestamp = data.intervalBucketsTimestamps(startDate, bucketInterval, bucketLimit);

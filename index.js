@@ -30,5 +30,6 @@ module.exports = {
   },
   websocket: require('./src/websocket'),
   dataProcessing: require('./src/data-processing'),
+  helpers: require('./src/helpers'),
   keyPathAssign: keyPathAssign,
 };
