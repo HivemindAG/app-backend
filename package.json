@@ -1,16 +1,16 @@
 {
   "name": "hivemind-app-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Backend for Apps running on the Hivemind IoT Platform",
   "keywords": [
     "Hivemind",
     "IoT",
     "backend"
   ],
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/app.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": "^6.9.0"
@@ -19,6 +19,7 @@
   "repository": "github:HivemindAG/app-backend",
   "license": "MIT",
   "dependencies": {
+    "hivemind-app-cache": "github:HivemindAG/app-cache#79d09c2ea4be8a6311122baa79490fb7b1c24864",
     "express": "^4.16.4",
     "minimist": "^1.2.0",
     "request": "^2.88.0",

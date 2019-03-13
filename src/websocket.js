@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
+const platform = require('hivemind-app-cache');
 
-const dataService = require('./data-service');
-const auth = require('./auth');
+const middleware = require('./middleware');
 
 // maybe use https://github.com/olalonde/express-websocket
 // maybe use https://github.com/HenningM/express-ws
@@ -13,7 +13,7 @@ module.exports = function(server) {
     server,
     verifyClient: (info, cbk) => {
       const req = info.req;
-      auth.addSession(req, (err) => {
+      middleware.addSessionHandler(req, (err) => {
         if (err) return cbk(false, 403, 'Forbidden');
         // addSession might modify req.url
         const path = req.url.split('\?')[0];
@@ -42,8 +42,8 @@ module.exports = function(server) {
       ws.isAlive = true;
     });
   });
-  dataService.config.newSampleCallback = newSample;
-  poll();
+  platform.events.on('sampleInsert', sampleInsert);
+  platform.events.on('sampleInvalidate', sampleInvalidate);
   // Send regular pings to provide keep-alive to proxies and remove dead connections
   setInterval(ping, 30000);
 };
@@ -60,12 +60,12 @@ function onMessage(ws, req, rpc) {
   if (rpc.cmd == 'subs') {
     const subs = rpc.arg.map((arg) => arg2Sub(arg, req.session));
     ws.subs = []; // Reset
-    ws.subs = addSubs(ws.subs, subs);
+    addSubs(req.session, ws.subs, subs);
   }
   if (rpc.cmd == 'sub') {
     const sub = arg2Sub(rpc.arg, req.session);
     if (!ws.subs) ws.subs = [];
-    ws.subs = addSub(ws.subs, sub);
+    addSub(req.session, ws.subs, sub);
   }
   if (rpc.cmd == 'unsub') {
     const sub = arg2Sub(rpc.arg, req.session);
@@ -79,29 +79,7 @@ function onMessage(ws, req, rpc) {
   }
 }
 
-function poll() {
-  let subs = {};
-  if (wss.clients) {
-    wss.clients.forEach((ws) => {
-      if (!ws.subs) return;
-      ws.subs.forEach((sub) => subs[deviceUID(sub)] = sub);
-    });
-    delete subs[null];
-  }
-  subs = Object.keys(subs).map((k) => subs[k]);
-  pollDevices(subs, () => setTimeout(() => poll(), 5 * 1000));
-}
-
-function pollDevices(subs, cbk) {
-  if (subs.length == 0) return cbk();
-  const sub = subs.pop();
-  dataService.expireSamples(sub, sub.devId);
-  dataService.getSamples(sub, sub.devId, () => pollDevices(subs, cbk));
-}
-
-// TODO: test if order is correct when multiple samples get added
-
-function newSample(event) {
+function sampleInsert(event) {
   if (!wss.clients) return;
   const msg = {
     cmd: 'notify',
@@ -109,54 +87,76 @@ function newSample(event) {
       type: 'sample',
       deviceId: event.devId,
       topic: event.topic,
-      timestamp: event.timestamp,
-      data: event.data,
+      timestamp: event.sample.timestamp,
+      data: event.sample.data,
     }
   };
   wss.clients.forEach((ws) => {
     if (!ws.subs) return;
     ws.subs.forEach((sub) => {
-      if (sub.type != 'sample') return;
       if (!subMatch(sub, event)) return;
       ws.send(JSON.stringify(msg));
     });
   });
 }
 
-function arg2Sub(arg, session) {
-  return Object.assign({
-    type: arg.type,
-    devId: arg.deviceId,
-    topic: arg.topic,
-  }, session);
+function sampleInvalidate(event) {
+  if (!wss.clients) return;
+  const msg = {
+    cmd: 'notify',
+    arg: {
+      type: 'invalidate',
+      deviceId: event.devId,
+      topic: event.topic,
+    }
+  };
+  wss.clients.forEach((ws) => {
+    if (!ws.subs) return;
+    let hasMatches = false;
+    ws.subs.forEach((sub) => {
+      if (!subMatch(sub, event)) return;
+      hasMatches = true;
+      ws.subs = removeSub(ws.subs, sub);
+    });
+    if (hasMatches) {
+      ws.send(JSON.stringify(msg));
+    }
+  });
 }
 
-function deviceUID(sub) {
-  if (sub.type != 'sample') return null;
-  return `${sub.apiURL}/${sub.envId}/${sub.devId}`;
+function arg2Sub(arg, session) {
+  return {
+    envId: session.envId,
+    devId: arg.deviceId,
+    topic: arg.topic,
+  };
 }
 
 function subMatch(sub, event) {
-  // console.debug(JSON.stringify(sub), JSON.stringify(event));
-  // TODO: type?
-  if (sub.apiURL != event.apiURL) return false;
-  if (sub.envId != event.envId) return false;
-  if (sub.devId != event.devId) return false;
-  if (sub.topic != event.topic) return false;
+  if (sub.envId !== event.envId) return false;
+  if (sub.devId !== event.devId && event.devId !== null) return false;
+  if (sub.topic !== event.topic && event.topic !== null) return false;
   return true;
 }
 
-function addSubs(arr, subs) {
-  subs.forEach((sub) => addSub(arr, sub));
-  return arr;
+function addSubs(session, arr, subs) {
+  subs.forEach((sub) => addSub(session, arr, sub));
 }
 
-function addSub(arr, sub) {
+function addSub(session, arr, sub) {
+  if (Object.values(sub).some(v => v == null)) return;
   for (var i = 0; i < arr.length; i++) {
     if (subMatch(arr[i], sub)) return;
   }
+  if (!platform.hasSampleCache(sub.envId, sub.devId, sub.topic)) {
+    // Request one sample to enable cache events
+    const cursor = new platform.SampleCursor(session, sub.devId, sub.topic);
+    cursor.forEach((sample) => false, (err) => {
+      if (err) console.error(err);
+    });
+  }
   arr.push(sub);
-  return arr;
+  return;
 }
 
 function removeSub(arr, sub) {
