@@ -1,6 +1,6 @@
 {
   "name": "hivemind-app-backend",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Backend for Apps running on the Hivemind IoT Platform",
   "keywords": [
     "Hivemind",
@@ -19,7 +19,7 @@
   "repository": "github:HivemindAG/app-backend",
   "license": "MIT",
   "dependencies": {
-    "hivemind-app-cache": "github:HivemindAG/app-cache#79d09c2ea4be8a6311122baa79490fb7b1c24864",
+    "hivemind-app-cache": "github:HivemindAG/app-cache#6928c2fc57d4fce14c911218c8a923048a6f83b2",
     "express": "^4.16.4",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
