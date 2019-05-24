@@ -15,13 +15,13 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "hivemind-app-cache": "~1.0.0",
-    "express": "^4.16.4",
+    "hivemind-app-cache": "github:HivemindAG/app-cache#19f9898eb03aef82cc0eb13561f59a570da5b86f",
+    "express": "^4.17.0",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
     "ws": "^6.2.1"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=10.0.0"
   }
 }
