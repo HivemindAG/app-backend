@@ -32,7 +32,7 @@ function getEntityKeys(list, def) {
 }
 
 function finalizeEntity(raw, keys) {
-  const obj = {id: raw.id};
+  const obj = { id: raw.id };
   if (keys.includes('name')) obj.name = raw.name;
   if (keys.includes('description')) obj.description = raw.description;
   if (keys.includes('properties')) obj.properties = raw.properties || {};
@@ -75,26 +75,32 @@ function query(session, devId, q, cbk) {
     if (limit > config.sampleCacheLimitMax) {
       // Use non-500 status code to allow sending message to client
       const msg = `cacheLimit too high (is ${limit}, but must be bellow ${config.sampleCacheLimitMax})`;
-      return cbk({status: 520, message: msg});
+      return cbk({ status: 520, message: msg });
     }
-    const cursor = new platform.SampleCursor(session, devId, q.topic);
-    cursor.limit = limit;
-    let i = -1;
-    const end = q.offset + q.limit;
-    const samples = [];
-    const minDate = q.minDate ? new Date(q.minDate) : null;
-    const maxDate = q.maxDate ? new Date(q.maxDate) : null;
-    cursor.forEach((sample) => {
-      if (maxDate && sample.timestamp > maxDate) return true;
-      if (minDate && sample.timestamp < minDate) return false;
-      i += 1;
-      if (i < q.offset) return true;
-      if (i == end) return false;
-      samples.push(sample);
-      return true;
-    }, (err) => {
-      if (err) return cbk(err);
-      cbk(null, samples);
+    platform.sampleService.checkForNewSamples(session, devId, q.topic, (err, newerSampleExists) => {
+      if (err)
+        return cbk(err);
+      if (newerSampleExists)
+        platform.sampleService.removeSampleCache(session.envId, devId, null);
+      const cursor = new platform.SampleCursor(session, devId, q.topic);
+      cursor.limit = limit;
+      let i = -1;
+      const end = q.offset + q.limit;
+      const samples = [];
+      const minDate = q.minDate ? new Date(q.minDate) : null;
+      const maxDate = q.maxDate ? new Date(q.maxDate) : null;
+      cursor.forEach((sample) => { // check if more samples are needed and add the current one to array if they are
+        if (maxDate && sample.timestamp > maxDate) return true;
+        if (minDate && sample.timestamp < minDate) return false;
+        i += 1;
+        if (i < q.offset) return true; // skipping current sample
+        if (i == end) return false; // no more samples needed
+        samples.push(sample);
+        return true;
+      }, (err) => {
+        if (err) return cbk(err);
+        cbk(null, samples);
+      });
     });
   });
 }
