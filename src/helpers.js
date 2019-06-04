@@ -77,11 +77,21 @@ function query(session, devId, q, cbk) {
       const msg = `cacheLimit too high (is ${limit}, but must be bellow ${config.sampleCacheLimitMax})`;
       return cbk({ status: 520, message: msg });
     }
-    platform.sampleService.checkForNewSamples(session, devId, q.topic, (err, newerSampleExists) => {
+    // check if there are some fresh samples that are not cached (for example if web service has crashed)
+    platform.sampleService.checkForNewerSamples(session, devId, q.topic, (err, cachedSamples, newerSamples) => {
       if (err)
         return cbk(err);
-      if (newerSampleExists)
-        platform.sampleService.removeSampleCache(session.envId, devId, null);
+      if (newerSamples && newerSamples.length) {
+        if (newerSamples.length < 10) { // if there are less than 10 samples, add them to cache
+          newerSamples.forEach(s1 => platform.sampleService.addSample(session.envId, devId, q.topic, s1));
+          if (config.debug)
+            console.info(`CACHE: add newer samples ${session.envId}:${devId}:${q.topic} (has ${cachedSamples.length}; add ${newerSamples.length})`);
+        } else { // if there are 10 samples returned, there is probaly more (limit is 10), then remove cache for current device and topic
+          platform.sampleService.removeSampleCache(session.envId, devId, null);
+          if (config.debug)
+            console.info(`CACHE: remove sample cache ${session.envId}:${devId}:${q.topic} (had ${cachedSamples.length})`);
+        }
+      }
       const cursor = new platform.SampleCursor(session, devId, q.topic);
       cursor.limit = limit;
       let i = -1;
