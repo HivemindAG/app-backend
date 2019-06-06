@@ -12,10 +12,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "version-patch": "npm version patch -m \"Publish version %s\"",
     "start": "node server.js"
   },
   "dependencies": {
-    "hivemind-app-cache": "github:HivemindAG/app-cache#41266483c80085e5a75c4d95428108f858f3c53a",
+    "hivemind-app-cache": "~1.0.3",
     "express": "^4.17.1",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
