@@ -1,6 +1,6 @@
 {
   "name": "hivemind-app-backend",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Backend for Apps running on the Hivemind IoT Platform",
   "keywords": [
     "Hivemind",
@@ -16,7 +16,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "hivemind-app-cache": "~1.0.3",
+    "hivemind-app-cache": "~1.0.4",
     "express": "^4.17.1",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
