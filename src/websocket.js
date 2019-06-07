@@ -8,7 +8,7 @@ const middleware = require('./middleware');
 
 let wss = null;
 
-module.exports = function(server) {
+module.exports = function (server) {
   wss = new WebSocket.Server({
     server,
     verifyClient: (info, cbk) => {
@@ -72,10 +72,10 @@ function onMessage(ws, req, rpc) {
     if (!ws.subs) ws.subs = [];
     ws.subs = removeSub(ws.subs, sub);
   }
-  console.debug(`rec: ${JSON.stringify(rpc)}`);
+  // if (config.debug) console.debug(`rec: ${JSON.stringify(rpc)}`);
   // console.debug(ws.subs);
   if (rpc.hasOwnProperty('id')) {
-    ws.send(JSON.stringify({id: rpc.id}));
+    ws.send(JSON.stringify({ id: rpc.id }));
   }
 }
 
