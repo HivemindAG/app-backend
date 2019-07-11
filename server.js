@@ -10,7 +10,7 @@ const config = modules.config;
 
 const args = require('minimist')(process.argv.slice(2));
 
-config.debug = process.env.DEBUG ? true : false;
+config.debug = process.env.DEBUG && process.env.DEBUG.toLowerCase() === 'true';
 config.platform = modules.platform.config;
 
 modules.keyPathAssign(config, JSON.parse(process.env.CONFIG || null));

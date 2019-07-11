@@ -71,12 +71,12 @@ function query(session, devId, q, cbk) {
   platform.entities.getSingle(session, '/devices', devId, (err, ans) => {
     if (err) return cbk(err);
     const props = ans.properties || {};
-    const limit = props.cacheLimit || config.sampleCacheLimit;
-    if (limit > config.sampleCacheLimitMax) {
-      // Use non-500 status code to allow sending message to client
-      const msg = `cacheLimit too high (is ${limit}, but must be bellow ${config.sampleCacheLimitMax})`;
-      return cbk({ status: 520, message: msg });
-    }
+    const limit = props.cacheLimit || platform.config.sampleLimit;
+    // if (limit > config.sampleCacheLimitMax) {
+    //   // Use non-500 status code to allow sending message to client
+    //   const msg = `cacheLimit too high (is ${limit}, but must be bellow ${config.sampleCacheLimitMax})`;
+    //   return cbk({ status: 520, message: msg });
+    // }
     // check if there are some fresh samples that are not cached (for example if web service has crashed)
     platform.sampleService.checkForNewerSamples(session, devId, q.topic, (err, cachedSamples, newerSamples) => {
       if (err)
