@@ -39,7 +39,8 @@ Only the most recent 4000 samples can be accessed for every topic. New samples a
   * Use key-paths to overwrite single values within objects (e.g. `{"platform.concurrentRequests": 4}`)
 * `$DEBUG`
   * Sets the `debug` configuration property
-  * Casted to a boolean, so an empty string is `false`
+  * Casted to a boolean, so any other value except `true` is considered `false`
+  * Default: `false`
 
 ## App Configuration Object Properties
 
@@ -51,13 +52,13 @@ Only the most recent 4000 samples can be accessed for every topic. New samples a
 * `platform.apiURL`
   * Hivemind Platform API URL (String)
   * Default: `"https://api.hivemind.ch"`
-* `sampleCacheLimit`
+<!-- * `sampleCacheLimit`
   * Maximum number of cached samples per device
   * Can be adjusted per device by providing a `cacheLimit` property
   * Default: `4000`
 * `sampleCacheLimitMax`
   * Maximum allowed number for `sampleCacheLimit`
-  * Default: `8000`
+  * Default: `8000` -->
 * `platform.entityCacheTimeout`
   * Cache entities for… [ms]
   * Default: `240000` (4 minutes)
