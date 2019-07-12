@@ -16,7 +16,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "hivemind-app-cache": "github:HivemindAG/app-cache#8206358bbf2c551770eb894de33a11d58d60265c",
+    "hivemind-app-cache": "1.0.5",
     "express": "^4.17.1",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
