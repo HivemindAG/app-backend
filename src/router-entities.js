@@ -33,6 +33,27 @@ router.get('/devices/:id', (req, res, next) => {
   });
 });
 
+router.patch('/devices/:id/properties', (req, res, next) => {
+  platform.entities.getSingle(req.session, '/devices', req.params.id, (err, deviceData) => {
+    if (err) return next(err);
+    for (const key in req.body) {
+      if (req.body.hasOwnProperty(key)) {
+        const value = req.body[key];
+        deviceData.properties[key] = value;
+      }
+    }
+    const args = {
+      path: `/v1/environments/${req.session.envId}/devices/${deviceData.id}`,
+      method: 'PUT',
+      json: deviceData,
+    };
+    platform.apiRequest.call(req.session, args, (err, response, result) => {
+      if (err) return next(err);
+      res.send(result);
+    });
+  });
+});
+
 router.get('/device-groups', (req, res, next) => {
   const keys = helpers.getEntityKeys(req.query.keys);
   platform.entities.getList(req.session, `/device-groups`, (err, ans) => {
@@ -46,15 +67,14 @@ router.get('/device-groups', (req, res, next) => {
           cbk(err, obj);
         });
       }, (err, arr) => {
-          if (err) return next(err);
-          res.send(arr);
+        if (err) return next(err);
+        res.send(arr);
       });
     } else {
       res.send(arr);
     }
   });
 });
-
 
 router.get('/device-groups/:id', (req, res, next) => {
   const keys = helpers.getEntityKeys(req.query.keys, ['name', 'description', 'devices']);
