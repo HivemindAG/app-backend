@@ -7,7 +7,7 @@ function cors(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   if (req.method == 'OPTIONS') {
     // Preflight
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE,OPTIONS');
     const allowHeaders = req.header("Access-Control-Request-Headers") || 'Origin, X-Reqested-With, Accept';
     res.header('Access-Control-Allow-Headers', allowHeaders);
     res.header('Access-Control-Max-Age', '3600');
@@ -22,7 +22,7 @@ function auth(req, res, next) {
 }
 
 function addSession(req, cbk) {
-  const session = {apiURL: config.apiURL, apiKey: config.apiKey};
+  const session = { apiURL: config.apiURL, apiKey: config.apiKey };
   platform.entities.getEnvId(session, (err, envId) => {
     session.envId = envId;
     req.session = session;
@@ -31,7 +31,7 @@ function addSession(req, cbk) {
 }
 
 function notFound(req, res, next) {
-  next({status: 404, message: `Invalid path: '${req.url}'`});
+  next({ status: 404, message: `Invalid path: '${req.url}'` });
 }
 
 const statusCodes = {
@@ -44,10 +44,10 @@ const statusCodes = {
 
 function error(err, req, res, next) {
   if (typeof err === 'string') {
-    err = {message: err};
+    err = { message: err };
   } else if (err instanceof Error) {
     if (config.debug) console.debug(err);
-    err = {status: err.status, error: err.error, message: err.message};
+    err = { status: err.status, error: err.error, message: err.message };
   }
   if (res.statusCode == 200) {
     res.status(500);
@@ -65,7 +65,7 @@ function error(err, req, res, next) {
     delete err.message;
   }
   res.status(err.status);
-  res.send({status: err.status, error: err.error, message: err.message});
+  res.send({ status: err.status, error: err.error, message: err.message });
 };
 
 module.exports = {
