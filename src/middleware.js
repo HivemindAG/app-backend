@@ -3,7 +3,7 @@ const platform = require('hivemind-app-cache');
 const config = require('./config');
 
 function cors(req, res, next) {
-  if (config.debug) console.info(req.method + ' ' + req.url);
+  if (config.debug) console.info(`INFO: CORS method: ${req.method}, url: ${req.url}`);
   res.header('Access-Control-Allow-Origin', '*');
   if (req.method == 'OPTIONS') {
     // Preflight

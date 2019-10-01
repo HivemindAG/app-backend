@@ -2,6 +2,8 @@ const platform = require('hivemind-app-cache');
 
 const config = require('./config');
 
+config.appCacheCheckLimit = +process.env.APP_CACHE_CHECK_LIMIT || 5;
+
 /**
  * Utils
  */
@@ -77,14 +79,14 @@ function query(session, devId, q, cbk) {
       if (err)
         return cbk(err);
       if (newerSamples && newerSamples.length) {
-        if (newerSamples.length < 10) { // if there are less than 10 samples, add them to cache
+        if (newerSamples.length < config.appCacheCheckLimit) { // if there are less than max requested samples, add them to cache
+          if (config.appCacheDebug)
+            console.info(`CACHE: adding newer samples for ${session.envId}(${session.appEnv.id}):${devId}:${q.topic} (has ${cachedSamples.length}, adding ${newerSamples.length}).`);
           newerSamples.forEach(s1 => platform.sampleService.addSample(session.envId, devId, q.topic, s1));
-          // if (config.debug)
-          console.info(`CACHE: added newer samples for ${session.envId}(${session.appEnv.id}):${devId}:${q.topic} (has ${cachedSamples.length}; add ${newerSamples.length})`);
-        } else { // if there are 10 samples returned, there is probaly more (limit is 10), then remove cache for current device and topic
+        } else { // if there are max requested samples returned, remove cache for current device and topic, because there is probaly more
+          if (config.appCacheDebug)
+            console.info(`CACHE: removing all samples from cache for ${session.envId}(${session.appEnv.id}):${devId}:${q.topic} (has ${cachedSamples.length}).`);
           platform.sampleService.removeSampleCache(session.envId, devId, null);
-          // if (config.debug)
-          console.info(`CACHE: removed all samples from cache for ${session.envId}(${session.appEnv.id}):${devId}:${q.topic} (had ${cachedSamples.length})`);
         }
       }
       const cursor = new platform.SampleCursor(session, devId, q.topic);
