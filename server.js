@@ -18,7 +18,6 @@ modules.keyPathAssign(config, JSON.parse(args.config || null));
 
 config.apiKey = args.key || config.apiKey;
 config.port = args.port || process.env.PORT || config.port;
-config.platform.debug = config.debug;
 
 /**
  * Create server

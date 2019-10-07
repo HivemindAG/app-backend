@@ -1,6 +1,6 @@
 {
   "name": "hivemind-app-backend",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "Backend for Apps running on the Akenza IoT Platform",
   "keywords": [
     "Akenza",
@@ -16,11 +16,11 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "hivemind-app-cache": "~1.0.7",
+    "hivemind-app-cache": "~1.0.8",
     "express": "^4.17.1",
     "minimist": "^1.2.0",
     "request": "^2.88.0",
-    "ws": "^6.2.1"
+    "ws": "^7.1.2"
   },
   "engines": {
     "node": ">=10.0.0"
